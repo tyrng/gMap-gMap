@@ -16,13 +16,13 @@
         android:layout_marginTop="56dp"/>
 
     <!-- this acts as an empty layout to switch fragment -->
-    <LinearLayout
+    <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_marginTop="56dp"
         android:layout_marginBottom="56dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal"/>
+        android:orientation="horizontal" />
 
     <!-- left drawer-->
     <include
