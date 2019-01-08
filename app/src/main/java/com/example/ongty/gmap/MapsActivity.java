@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -28,7 +29,10 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Toolbar;
 
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.GeoDataClient;
@@ -46,12 +50,19 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * An activity that displays a map showing the place at the device's current location.
  */
 public class MapsActivity extends AppCompatActivity
-        implements OnMapReadyCallback, DiscoverFragment.OnFragmentInteractionListener, ItemFragment.OnFragmentInteractionListener {
+        implements OnMapReadyCallback, DiscoverFragment.OnFragmentInteractionListener, ItemFragment.OnFragmentInteractionListener,
+        NavigationView.OnNavigationItemSelectedListener{
 
     private static final String TAG = MapsActivity.class.getSimpleName();
     private GoogleMap mMap;
@@ -93,9 +104,16 @@ public class MapsActivity extends AppCompatActivity
     private String[] mDatePlaceAttributions;
     private LatLng[] mDataPlaceLatLngs;
 
+    private static final int RC_SIGN_IN = 123;
+    private Toolbar toolbar;
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
+    private Menu menu;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        checkCurrentUser();
 
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -105,6 +123,9 @@ public class MapsActivity extends AppCompatActivity
 
         // Retrieve the content view that renders the map.
         setContentView(R.layout.activity_maps);
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        setNavigationViewListener();
+
 
         // Construct a GeoDataClient.
         mGeoDataClient = Places.getGeoDataClient(this, null);
@@ -129,18 +150,22 @@ public class MapsActivity extends AppCompatActivity
     }
     /** TODO: CODE HERE ----------------------------------------------------------------------------- */
 
-    /** On back pressed */
+    /**
+     * On back pressed
+     */
     @Override
     public void onBackPressed() {
         DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
-        if(drawerLayout.isDrawerOpen(GravityCompat.START))
+        if (drawerLayout.isDrawerOpen(GravityCompat.START))
             drawerLayout.closeDrawer(GravityCompat.START);
         else
             super.onBackPressed();
     }
 
-    /** Top Navigation View ------------------------------------------------------------------------ */
-    private void loadNavigationView(){
+    /**
+     * Top Navigation View ------------------------------------------------------------------------
+     */
+    private void loadNavigationView() {
         android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -150,7 +175,7 @@ public class MapsActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 //fixme snackbar below navigationbar
-                Snackbar.make(v, "Floating action bar", Snackbar.LENGTH_LONG).setAction("Action",null).show();
+                Snackbar.make(v, "Floating action bar", Snackbar.LENGTH_LONG).setAction("Action", null).show();
             }
         });
 
@@ -161,8 +186,10 @@ public class MapsActivity extends AppCompatActivity
         toggle.syncState();
     }
 
-    /** Bottom Navigation View --------------------------------------------------------------------------------------------------- */
-    private void loadBottomNavigationView(){
+    /**
+     * Bottom Navigation View ---------------------------------------------------------------------------------------------------
+     */
+    private void loadBottomNavigationView() {
         BottomNavigationView bottomNavigationView = findViewById(R.id.nav_bar);
         bottomNavigationView.setOnNavigationItemReselectedListener(new BottomNavigationView.OnNavigationItemReselectedListener() {
             //fixme navigation bar items click twice to switch fragment, need debug
@@ -174,7 +201,7 @@ public class MapsActivity extends AppCompatActivity
                 /**fixme optimize this after done*/
                 FragmentManager fragmentManager = getSupportFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                switch(id){
+                switch (id) {
                     case R.id.nav_bar_discover:
                         DiscoverFragment discoverFragment = new DiscoverFragment();
                         /** Handle Favourite action */
@@ -189,7 +216,7 @@ public class MapsActivity extends AppCompatActivity
                         Fragment fragment = fragmentManager.findFragmentById(R.id.fragment_container);
 
                         /** only remove when fragment is not the gMap */
-                        if(fragment != null) {
+                        if (fragment != null) {
                             fragmentTransaction.remove(fragment);
                             fragmentTransaction.addToBackStack(null);
 
@@ -209,7 +236,9 @@ public class MapsActivity extends AppCompatActivity
         });
     }
 
-    /** Listener to link DiscoverFragment and ItemFragment interface */
+    /**
+     * Listener to link DiscoverFragment and ItemFragment interface
+     */
     @Override
     public void onFragmentInteraction(Uri uri) {
         Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show();
@@ -237,6 +266,7 @@ public class MapsActivity extends AppCompatActivity
 
     /**
      * Sets up the options menu.
+     *
      * @param menu The options menu.
      * @return Boolean.
      */
@@ -248,6 +278,7 @@ public class MapsActivity extends AppCompatActivity
 
     /**
      * Handles a click on the menu option to get a place.
+     *
      * @param item The menu item to handle.
      * @return Boolean.
      */
@@ -333,7 +364,7 @@ public class MapsActivity extends AppCompatActivity
                     }
                 });
             }
-        } catch (SecurityException e)  {
+        } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
     }
@@ -374,7 +405,7 @@ public class MapsActivity extends AppCompatActivity
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted = true;
-                }else {
+                } else {
                     mLocationPermissionGranted = true;
                     mMap.setMyLocationEnabled(false);
                     mMap.getUiSettings().setMyLocationButtonEnabled(false);
@@ -398,8 +429,7 @@ public class MapsActivity extends AppCompatActivity
         if (mLocationPermissionGranted) {
             // Get the likely places - that is, the businesses and other points of interest that
             // are the best match for the device's current location.
-            @SuppressWarnings("MissingPermission") final
-            Task<PlaceLikelihoodBufferResponse> placeResult =
+            @SuppressWarnings("MissingPermission") final Task<PlaceLikelihoodBufferResponse> placeResult =
                     mPlaceDetectionClient.getCurrentPlace(null);
             placeResult.addOnCompleteListener
                     (new OnCompleteListener<PlaceLikelihoodBufferResponse>() {
@@ -411,7 +441,7 @@ public class MapsActivity extends AppCompatActivity
                                 // Set the count, handling cases where less than 5 entries are returned.
                                 int count;
                                 if (likelyPlaces.getCount() < M_MAX_ENTRIES) {
-                                     count = likelyPlaces.getCount();
+                                    count = likelyPlaces.getCount();
                                 } else {
                                     count = M_MAX_ENTRIES;
                                 }
@@ -433,7 +463,7 @@ public class MapsActivity extends AppCompatActivity
                                     mLikelyPlaceLatLngs[i] = placeLikelihood.getPlace().getLatLng();
 
                                     i++;
-                                        if (i > (count - 1)) {
+                                    if (i > (count - 1)) {
                                         break;
                                     }
                                 }
@@ -473,7 +503,7 @@ public class MapsActivity extends AppCompatActivity
         DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                 LatLng markerLatLng = mLikelyPlaceLatLngs[which];
+                LatLng markerLatLng = mLikelyPlaceLatLngs[which];
                 String markerSnippet = mLikelyPlaceAddresses[which];
                 if (mLikelyPlaceAttributions[which] != null) {
                     markerSnippet = markerSnippet + "\n" + mLikelyPlaceAttributions[which];
@@ -517,8 +547,106 @@ public class MapsActivity extends AppCompatActivity
                 mLastKnownLocation = null;
                 getLocationPermission();
             }
-        } catch (SecurityException e)  {
+        } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
     }
+
+
+    public void checkCurrentUser() {
+        // [START check_current_user]
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            // User is signed in
+        } else {
+            createSignInIntent();
+        }
+        // [END check_current_user]
+    }
+
+    public void createSignInIntent() {
+        // [START auth_fui_create_intent]
+        // Choose authentication providers
+        List<AuthUI.IdpConfig> providers = Arrays.asList(
+                new AuthUI.IdpConfig.EmailBuilder().build(),
+                new AuthUI.IdpConfig.PhoneBuilder().build(),
+                new AuthUI.IdpConfig.GoogleBuilder().build(),
+                new AuthUI.IdpConfig.AnonymousBuilder().build());
+
+        // [START auth_fui_theme_logo]
+        startActivityForResult(
+                AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setAvailableProviders(providers)
+                        .setLogo(R.drawable.my_great_logo)      // Set logo drawable
+                        .setTheme(R.style.GreenTheme)      // Set theme
+                        .build(),
+                RC_SIGN_IN);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == RC_SIGN_IN) {
+            IdpResponse response = IdpResponse.fromResultIntent(data);
+
+            if (resultCode == RESULT_OK) {
+                // Successfully signed in
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+                navigationView = (NavigationView) findViewById(R.id.nav_view);
+                View headerView = navigationView.getHeaderView(0);
+                TextView navUsername = (TextView) headerView.findViewById(R.id.UsernameID);
+                TextView navEmail = (TextView) headerView.findViewById(R.id.EmailID);
+                if (user.isAnonymous()) {
+                    navUsername.setText("Hi There,");
+                    navEmail.setText("Welcome to MurahApp");
+                }else{
+                    navUsername.setText(user.getDisplayName());
+                    navEmail.setText(user.getEmail());
+                }
+
+                // ...
+            } else {
+                // Sign in failed. If response is null the user canceled the
+                // sign-in flow using the back button. Otherwise check
+                // response.getError().getErrorCode() and handle the error.
+                // ...
+            }
+        }
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        switch (id){
+            case R.id.action_settings: {
+                Toast.makeText(getApplicationContext(), "Setting", Toast.LENGTH_LONG).show();
+                break;
+            }
+            case R.id.action_signout: {
+                AuthUI.getInstance()
+                        .signOut(this)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            public void onComplete(@NonNull Task<Void> task) {
+                                // ...
+                                Intent intent = new Intent(getBaseContext(),MapsActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                            }
+                        });
+                break;
+            }
+        }
+        drawerLayout.closeDrawer(GravityCompat.START);
+        return true;
+    }
+    private void setNavigationViewListener() {
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.bringToFront();
+        navigationView.setNavigationItemSelectedListener(this);
+    }
+
 }

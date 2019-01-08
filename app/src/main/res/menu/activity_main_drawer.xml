@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
@@ -15,6 +16,10 @@
 
     <item android:title="Custom">
         <menu>
+            <item
+                android:id="@+id/action_signout"
+                android:title="@string/action_signout"
+                app:showAsAction="ifRoom" />
             <item android:id="@+id/action_settings"
                 android:title="@string/action_settings" />
             <item android:id="@+id/nav_aboutUs"
