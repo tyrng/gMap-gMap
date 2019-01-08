@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- nav_header_main.xml -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <!-- navigation header -->
+    <dimen name="nav_header_vertical_spacing">8dp</dimen>
+    <dimen name="nav_header_height">176dp</dimen>
+
+    <!-- floating action button -->
+    <dimen name="fab_margin_right">20dp</dimen>
+    <dimen name="fab_margin_bottom">70dp</dimen>
+</resources>
