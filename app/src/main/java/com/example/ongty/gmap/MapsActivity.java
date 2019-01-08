@@ -93,6 +93,9 @@ public class MapsActivity extends AppCompatActivity
     private String[] mDatePlaceAttributions;
     private LatLng[] mDataPlaceLatLngs;
 
+    private Marker addLocation;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -150,9 +153,19 @@ public class MapsActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 //fixme snackbar below navigationbar
-                Snackbar.make(v, "Floating action bar", Snackbar.LENGTH_LONG).setAction("Action",null).show();
+                if(addLocation == null) {
+                    Snackbar.make(v, "Floating action bar", Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                    addMarker(mMap);
+
+                }
+                else{
+                    //TODO DELETE addLocation Marker after completion
+                    addLocation.remove();
+                    addLocation = null;
+                }
             }
         });
+        /**=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=*/
 
         /** add drawer layout and listeners */
         final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
@@ -220,8 +233,14 @@ public class MapsActivity extends AppCompatActivity
 
     // TODO make activity and fragments for navigation
     /** Select 'Get Location' Button in Toolbar */
+    public void addMarker(GoogleMap googleMap){
+        //TODO add Marker
+        LatLng currentLocation = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
+        addLocation = googleMap.addMarker(new MarkerOptions().position(currentLocation).draggable(true).title("Hold and drag me around!"));
+        addLocation.showInfoWindow();
+    }
 
-    /** --------------------------------------------------------------------------------------------- */
+    /** $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ */
 
     /**
      * Saves the state of the map when the activity is paused.
