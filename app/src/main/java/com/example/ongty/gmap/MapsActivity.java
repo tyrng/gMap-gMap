@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,6 +27,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -46,6 +49,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+
+import java.util.Objects;
 
 /**
  * An activity that displays a map showing the place at the device's current location.
@@ -166,6 +171,7 @@ public class MapsActivity extends AppCompatActivity
         BottomNavigationView bottomNavigationView = findViewById(R.id.nav_bar);
         bottomNavigationView.setOnNavigationItemReselectedListener(new BottomNavigationView.OnNavigationItemReselectedListener() {
             //fixme navigation bar items click twice to switch fragment, need debug
+            //fixme map working underneath
             @Override
             public void onNavigationItemReselected(@NonNull MenuItem item) {
                 /** Handle navigation view item clicks here*/
@@ -174,15 +180,26 @@ public class MapsActivity extends AppCompatActivity
                 /**fixme optimize this after done*/
                 FragmentManager fragmentManager = getSupportFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+                /** hide or show button when navigate */
+                FloatingActionButton fab = findViewById(R.id.fab);
+                /** get frame to set active */
+                FrameLayout frame = findViewById(R.id.fragment_container);
+
+                /** get toolbar name*/
+                android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+
                 switch(id){
                     case R.id.nav_bar_discover:
+                        /** Handle Discover action */
                         DiscoverFragment discoverFragment = new DiscoverFragment();
-                        /** Handle Favourite action */
 
-                        fragmentTransaction.replace(R.id.fragment_container, discoverFragment);
-                        fragmentTransaction.addToBackStack(null);
+                        fragmentTransaction.replace(R.id.fragment_container, discoverFragment).addToBackStack(null).commit();
+                        fab.hide();
+                        frame.setClickable(true);
+                        frame.setFocusable(true);
+                        toolbar.setTitle(R.string.nav_bar_discover);
 
-                        fragmentTransaction.commit();
                         break;
                     case R.id.nav_bar_map:
                         /** set fragment into map */
@@ -190,19 +207,24 @@ public class MapsActivity extends AppCompatActivity
 
                         /** only remove when fragment is not the gMap */
                         if(fragment != null) {
-                            fragmentTransaction.remove(fragment);
-                            fragmentTransaction.addToBackStack(null);
-
-                            fragmentTransaction.commit();
+                            fragmentTransaction.remove(fragment).addToBackStack(null).commit();
+                            fab.show();
+                            frame.setClickable(false);
+                            frame.setFocusable(false);
+                            toolbar.setTitle(R.string.app_name);
                         }
+
                         break;
                     case R.id.nav_bar_addItem:
+                        /** Handle Add Item action */
                         ItemFragment itemFragment = new ItemFragment();
 
-                        fragmentTransaction.replace(R.id.fragment_container, itemFragment);
-                        fragmentTransaction.addToBackStack(null);
+                        fragmentTransaction.replace(R.id.fragment_container, itemFragment).addToBackStack(null).commit();
+                        fab.hide();
+                        frame.setClickable(true);
+                        frame.setFocusable(true);
+                        toolbar.setTitle(R.string.nav_bar_addItem);
 
-                        fragmentTransaction.commit();
                         break;
                 }
             }

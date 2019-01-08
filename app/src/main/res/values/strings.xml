@@ -7,6 +7,7 @@
 
     <!-- Manifest.xml string settings -->
     <string name="app_name">Murah</string>
+    <string name="title_activity_fragment_map">Map</string>
 
     <!-- Unused strings, will be used for settingactivity.class
     TODO change placeholder text -->
@@ -28,6 +29,13 @@
     <string name="radioGroupHint">Radio Hint</string>
     <string name="image_content">Setting Image</string>
 
+    <!-- Layout: item_fragment.xml-->
+    <string name="locationName">Location Name</string>
+    <string name="itemName">Item Name</string>
+    <string name="itemCategory">Item Category</string>
+    <string name="itemPrice">Item Price</string>
+    <string name="itemPicture">Item Picture</string>
+
     <!-- Menu: main.xml -->
     <string name="action_settings">Settings</string>
 
@@ -41,5 +49,5 @@
     <string name="nav_bar_discover">Discover</string>
     <string name="nav_bar_area">Area</string>
     <string name="nav_bar_addItem">Add Item</string>
-    <string name="title_activity_fragment_map">Map</string>
+
 </resources>
