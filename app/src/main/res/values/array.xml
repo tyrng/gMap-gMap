@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="itemCat">
+        <item>"Dairy"</item>
+        <item>"Canned"</item>
+        <item>"Fresh"</item>
+        <item>"Frozen"</item>
+        <item>"Grain"</item>
+    </array>
+</resources>

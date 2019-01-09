@@ -279,29 +279,6 @@ public class MapsActivity extends AppCompatActivity
         frame.setClickable(true);
         frame.setFocusable(true);
         toolbar.setTitle(R.string.nav_bar_addItem);
-
-        EditText itemLocationNameTxt = findViewById(R.id.locationName);
-        EditText itemNameTxt = findViewById(R.id.itemName);
-        Spinner itemCategorySpin = findViewById(R.id.itemCategory);
-        EditText itemPriceTxt = findViewById(R.id.itemPrice);
-        // TODO: GET PICTURE FROM INPUT
-
-        // you need to have a list of data that you want the spinner to display
-        List<String> spinnerArray =  new ArrayList<>();
-        spinnerArray.add("Dairy");
-        spinnerArray.add("Canned");
-        spinnerArray.add("Fresh");
-        spinnerArray.add("Frozen");
-        spinnerArray.add("Grain");
-
-        ArrayAdapter<String> SpinAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, spinnerArray);
-
-        SpinAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        itemCategorySpin.setAdapter(SpinAdapter);
-
-        if(mode == 2){       // WITH MARKER
-
-        }
         }
 
 
