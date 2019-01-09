@@ -76,16 +76,16 @@ public class ItemFragment extends Fragment {
                 item newItem;
 
                 if(selectedLatitude != null && selectedLongitude != null){
-                    placeEntered = new place(itemLocationNameTxt.getText().toString(), selectedLatitude, selectedLongitude);
-                    database.child("places").child(UUID.randomUUID().toString()).setValue(placeEntered);
+                    placeEntered = new place(itemLocationNameTxt.getText().toString(), selectedLatitude, selectedLongitude, null);
+                    database.child("places").push().setValue(placeEntered);
                     newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered);
-                    database.child("items").child(UUID.randomUUID().toString()).setValue(newItem);
+                    database.child("items").push().setValue(newItem);
                 } else {
                     for(place p : placeList){
                         if (p.getName().equals(itemLocationNameTxt.getText().toString())){
                             placeEntered = p;
                             newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered);
-                            database.child("items").child(UUID.randomUUID().toString()).setValue(newItem);
+                            database.child("items").push().setValue(newItem);
                             break;
                         }
                     }
