@@ -5,12 +5,12 @@ public class item {
     String category;
     Double price;
     place itemPlace;
-    byte[] receipt;
+    String receipt;
 
     public item() {
     }
 
-    public item(String name, String category, Double price, place itemPlace, byte[] receipt) {
+    public item(String name, String category, Double price, place itemPlace, String receipt) {
         this.name = name;
         this.category = category;
         this.price = price;
