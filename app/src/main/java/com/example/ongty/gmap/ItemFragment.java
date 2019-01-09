@@ -83,7 +83,7 @@ public class ItemFragment extends Fragment {
 
                 // TODO: GET PICTURE FROM INPUT
 
-                
+
 
 
 
