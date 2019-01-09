@@ -709,15 +709,14 @@ public class MapsActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == 1)
+        if (requestCode == 1) {
+            if (resultCode == Activity.RESULT_OK)
                 onSelectFromImageResult(data);
-            else if (requestCode == 2){
+        } else if (requestCode == 2){
+            if (resultCode == Activity.RESULT_OK){
                 onCaptureImageResult(data);
             }
-        }
-
-        else if (requestCode == RC_SIGN_IN) { // 123
+        } else if (requestCode == RC_SIGN_IN) { // 123
             IdpResponse response = IdpResponse.fromResultIntent(data);
 
             if (resultCode == RESULT_OK) {
