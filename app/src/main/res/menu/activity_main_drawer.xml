@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:showIn="@layout/activity_maps">
+    tools:showIn="navigation_drawer">
 
     <!-- find in MapsActivity.java > loadBottomNavigationView()-->
     <group android:checkableBehavior="single">
@@ -15,6 +15,9 @@
 
     <item android:title="Custom">
         <menu>
+            <item
+                android:id="@+id/action_log"
+                android:title="@string/action_settings" />
             <item android:id="@+id/action_settings"
                 android:title="@string/action_settings" />
             <item android:id="@+id/nav_aboutUs"
