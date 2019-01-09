@@ -10,9 +10,11 @@ import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -29,13 +31,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -65,7 +66,8 @@ import java.util.Objects;
  * An activity that displays a map showing the place at the device's current location.
  */
 public class MapsActivity extends AppCompatActivity
-        implements OnMapReadyCallback, DiscoverFragment.OnFragmentInteractionListener, ItemFragment.OnFragmentInteractionListener {
+        implements OnMapReadyCallback, DiscoverFragment.OnFragmentInteractionListener, ItemFragment.OnFragmentInteractionListener
+, NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
     private GoogleMap mMap;
@@ -108,6 +110,9 @@ public class MapsActivity extends AppCompatActivity
     private LatLng[] mDataPlaceLatLngs;
 
     private Marker addLocation;
+
+    /** Upload Image */
+    private static final int REQ_CODE = 1;
 
 
     @Override
@@ -184,11 +189,19 @@ public class MapsActivity extends AppCompatActivity
         });
         /**=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0=*/
 
-        /** add drawer layout and listeners */
+        /** add drawer layout */
         final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
+
+        /** add drawer listeners */
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        /** Image Uploading */
+        ///fixme https://code.tutsplus.com/tutorials/image-upload-to-firebase-in-android-application--cms-29934
+
     }
 
     /** Bottom Navigation View --------------------------------------------------------------------------------------------------- */
@@ -214,7 +227,7 @@ public class MapsActivity extends AppCompatActivity
                 /** get toolbar name*/
                 android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
 
-                switch(id){
+                switch(item.getItemId()){
                     case R.id.nav_bar_discover:
                         /** Handle Discover action */
                         DiscoverFragment discoverFragment = new DiscoverFragment();
@@ -289,7 +302,8 @@ public class MapsActivity extends AppCompatActivity
         if(mode == 2){       // WITH MARKER
 
         }
-    }
+        }
+
 
     /** Listener to link DiscoverFragment and ItemFragment interface */
     @Override
@@ -297,7 +311,18 @@ public class MapsActivity extends AppCompatActivity
         Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show();
     }
 
-    /** Select From Bottom Navigation Menu*/
+    /** Select From drawer Menu*/
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        /** Handle drawer item clicks here*/
+        switch (item.getItemId()){
+            case R.id.nav_fav:
+                //TODO add drawer intent
+                break;
+        }
+        return true;
+    }
 
 
     // TODO make activity and fragments for navigation

@@ -7,8 +7,6 @@
     android:background="?android:attr/colorBackground"
     tools:context=".ItemFragment">
 
-
-
     <!-- TODO add style for this -->
     <!-- add location name -->
     <android.support.design.widget.TextInputLayout
@@ -131,10 +129,39 @@
             android:id="@+id/itemPicture"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/itemPicture" />
+            android:text="@string/itemImage" />
+
+        <Button
+            android:id="@+id/uploadImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/uploadImage" />
 
         <!--TODO add image uploader, https://stackoverflow.com/questions/20322528/uploading-images-to-server-android -->
     </android.support.design.widget.TextInputLayout>
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="Reset"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="Submit"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/button2" />
 
 </android.support.constraint.ConstraintLayout>
 

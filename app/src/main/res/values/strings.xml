@@ -25,7 +25,6 @@
     <string name="nav_header_desc">Navigation header</string>
 
     <!-- Layout: activity_settings.xml -->
-    <string name="editTextHint">Name</string>
     <string name="radioGroupHint">Radio Hint</string>
     <string name="image_content">Setting Image</string>
 
@@ -34,7 +33,7 @@
     <string name="itemName">Item Name</string>
     <string name="itemCategory">Item Category</string>
     <string name="itemPrice">Item Price</string>
-    <string name="itemPicture">Item Picture</string>
+    <string name="itemImage">Item Image</string>
 
     <!-- Menu: main.xml -->
     <string name="action_settings">Settings</string>
@@ -49,5 +48,6 @@
     <string name="nav_bar_discover">Discover</string>
     <string name="nav_bar_area">Area</string>
     <string name="nav_bar_addItem">Add Item</string>
+    <string name="uploadImage">Upload Image</string>
 
 </resources>
