@@ -1,10 +1,12 @@
 package com.example.ongty.gmap;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
@@ -12,6 +14,8 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
@@ -28,6 +32,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -61,6 +66,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.io.IOException;
@@ -129,7 +138,10 @@ public class MapsActivity extends AppCompatActivity
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private Menu menu;
+    private ItemFragment itemFragment;
 
+    /** IMAGE UPLOAD FOR ITEMS */
+    private String uploadedItemImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -226,64 +238,62 @@ public class MapsActivity extends AppCompatActivity
 
     /** Bottom Navigation View --------------------------------------------------------------------------------------------------- */
     private void loadBottomNavigationView(){
-        BottomNavigationView bottomNavigationView = findViewById(R.id.nav_bar);
-        bottomNavigationView.setOnNavigationItemReselectedListener(new BottomNavigationView.OnNavigationItemReselectedListener() {
-            //fixme navigation bar items click twice to switch fragment, need debug
-            //fixme map working underneath
-            @Override
-            public void onNavigationItemReselected(@NonNull MenuItem item) {
-                /** Handle navigation view item clicks here*/
-                int id = item.getItemId();
+        BottomNavigationView navigation = findViewById(R.id.nav_bar);
+        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
-                /**fixme optimize this after done*/
-                FragmentManager fragmentManager = getSupportFragmentManager();
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
-                /** hide or show button when navigate */
-                FloatingActionButton fab = findViewById(R.id.fab);
-                /** get frame to set active */
-                FrameLayout frame = findViewById(R.id.fragment_container);
-
-                /** get toolbar name*/
-                android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
-
-                switch(item.getItemId()){
-                    case R.id.nav_bar_discover:
-                        /** Handle Discover action */
-                        DiscoverFragment discoverFragment = new DiscoverFragment();
-
-                        fragmentTransaction.replace(R.id.fragment_container, discoverFragment).addToBackStack(null).commit();
-                        fab.hide();
-                        frame.setClickable(true);
-                        frame.setFocusable(true);
-                        toolbar.setTitle(R.string.nav_bar_discover);
-
-                        break;
-                    case R.id.nav_bar_map:
-                        if(addLocation!=null){
-                            addLocation.remove();
-                            addLocation = null;
-                        }
-                        /** set fragment into map */
-                        Fragment fragment = fragmentManager.findFragmentById(R.id.fragment_container);
-
-                        /** only remove when fragment is not the gMap */
-                        if(fragment != null) {
-                            fragmentTransaction.remove(fragment).addToBackStack(null).commit();
-                            fab.show();
-                            frame.setClickable(false);
-                            frame.setFocusable(false);
-                            toolbar.setTitle(R.string.app_name);
-                        }
-
-                        break;
-                    case R.id.nav_bar_addItem:
-                        addItemFragment();
-                        break;
-                }
-            }
-        });
     }
+
+    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
+            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+
+        @Override
+        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+            /** hide or show button when navigate */
+            FloatingActionButton fab = findViewById(R.id.fab);
+            /** get frame to set active */
+            FrameLayout frame = findViewById(R.id.fragment_container);
+
+            /** get toolbar name*/
+            android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+            DiscoverFragment discoverFragment;
+            switch (item.getItemId()) {
+                case R.id.nav_bar_discover:
+                    discoverFragment = new DiscoverFragment();
+
+                    fragmentTransaction.replace(R.id.fragment_container, discoverFragment).addToBackStack(null).commit();
+                    fab.hide();
+                    frame.setClickable(true);
+                    frame.setFocusable(true);
+                    toolbar.setTitle(R.string.nav_bar_discover);
+                    return true;
+                case R.id.nav_bar_map:
+                    if(addLocation!=null){
+                        addLocation.remove();
+                        addLocation = null;
+                    }
+                    /** set fragment into map */
+                    Fragment fragment = fragmentManager.findFragmentById(R.id.fragment_container);
+
+                    /** only remove when fragment is not the gMap */
+                    if(fragment != null) {
+                        fragmentTransaction.remove(fragment).addToBackStack(null).commit();
+                        fab.show();
+                        frame.setClickable(false);
+                        frame.setFocusable(false);
+                        toolbar.setTitle(R.string.app_name);
+                    }
+                    return true;
+                case R.id.nav_bar_addItem:
+                    addItemFragment();
+                    return true;
+            }
+            return false;
+        }
+    };
+
 
     //ADD ITEM FRAGMENT ----------------------------------------------------------------------------
     private void addItemFragment(){
@@ -292,7 +302,7 @@ public class MapsActivity extends AppCompatActivity
         /** get frame to set active */
         FrameLayout frame = findViewById(R.id.fragment_container);
         /** Handle Add Item action */
-        ItemFragment itemFragment = new ItemFragment();
+        itemFragment = new ItemFragment();
         /** Bundle to pass argument from activity to fragment */
         if (addLocation != null){
             Bundle  bundleItemFragment = new Bundle();
@@ -716,8 +726,15 @@ public class MapsActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == 1)
+                onSelectFromImageResult(data);
+            else if (requestCode == 2){
+                onCaptureImageResult(data);
+            }
+        }
 
-        if (requestCode == RC_SIGN_IN) {
+        else if (requestCode == RC_SIGN_IN) { // 123
             IdpResponse response = IdpResponse.fromResultIntent(data);
 
             if (resultCode == RESULT_OK) {
@@ -797,4 +814,37 @@ public class MapsActivity extends AppCompatActivity
     public void setAddLocation(Marker addLocation) {
         this.addLocation = addLocation;
     }
+
+    @SuppressWarnings("deprecation")
+    private void onSelectFromImageResult(Intent data) {
+        ImageView ivImage = findViewById(R.id.ivPreview);
+        Bitmap bm=null;
+        if (data != null) {
+            try {
+                bm = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), data.getData());
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                uploadedItemImage = Base64.encodeToString(stream.toByteArray(), Base64.DEFAULT);
+                Bundle  bundleItemFragment = new Bundle();
+                bundleItemFragment.putString("image", uploadedItemImage);
+                itemFragment.setArguments(bundleItemFragment);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        ivImage.setImageBitmap(bm);
+    }
+
+    private void onCaptureImageResult(Intent data) {
+        ImageView ivImage = findViewById(R.id.ivPreview);
+        Bitmap bm = (Bitmap) data.getExtras().get("data");
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        uploadedItemImage = Base64.encodeToString(stream.toByteArray(), Base64.DEFAULT);
+        Bundle  bundleItemFragment = new Bundle();
+        bundleItemFragment.putString("image", uploadedItemImage);
+        itemFragment.setArguments(bundleItemFragment);
+        ivImage.setImageBitmap(bm);
+    }
+
 }
