@@ -57,5 +57,7 @@
     <string name="dairy">Dairy</string>
     <string name="canned">Canned</string>
     <string name="grain">Grain</string>
+    <string name="dry">Dry</string>
+    <string name="fresh">Fresh</string>
 
 </resources>

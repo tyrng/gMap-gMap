@@ -10,4 +10,8 @@
     <color name="gradient_primaryDark">#CC95C0</color>
     <color name="gradient_primary">#ffffff</color>
     <color name="black">#000000</color>
+    <color name="darkGrey">#696969</color>
+
+    <!-- MapsActivity color used -->
+    <color name="colorGreenPale">#bdff78d6</color>
 </resources>

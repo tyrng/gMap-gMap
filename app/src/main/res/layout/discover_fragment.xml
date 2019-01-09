@@ -18,14 +18,33 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/frozen"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/frozen" />
+
                 <ImageButton
                     android:id="@+id/frozenBtn"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
                     android:text="@string/frozen"
+                    android:src="@drawable/ic_ac_unit_black_24dp"/>
 
-                    android:src="@drawable/frozen"
-                    />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/dairy"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/dairy" />
 
                 <ImageButton
                     android:id="@+id/dairyBtn"
@@ -34,6 +53,17 @@
                     android:text="@string/dairy"
                     android:src="@drawable/ic_ac_unit_black_24dp"/>
 
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/grain"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/grain" />
+
                 <ImageButton
                     android:id="@+id/grainBtn"
                     android:layout_width="wrap_content"
@@ -41,22 +71,58 @@
                     android:text="@string/grain"
                     android:src="@drawable/ic_ac_unit_black_24dp"/>
 
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/canned"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/canned" />
+
                 <ImageButton
                     android:id="@+id/cannedBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:text="@string/canned" />
-                    android:text="@string/frozen" />
+
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/fresh"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fresh" />
 
                 <ImageButton
+                    android:id="@+id/freshBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:text="@string/frozen" />
+                    android:text="@string/fresh" />
+
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/dry"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/dry" />
 
                 <ImageButton
+                    android:id="@+id/dryBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:text="@string/frozen" />
+                    android:text="@string/dry" />
+
+            </LinearLayout>
         </LinearLayout>
     </HorizontalScrollView>
 
