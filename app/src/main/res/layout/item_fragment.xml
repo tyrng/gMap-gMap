@@ -107,7 +107,7 @@
             android:ems="10"
             android:hint="@string/itemPrice"
             android:imeOptions="actionNext"
-            android:inputType="number" />
+            android:inputType="numberDecimal" />
 
     </android.support.design.widget.TextInputLayout>
 
