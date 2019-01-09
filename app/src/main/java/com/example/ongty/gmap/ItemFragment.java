@@ -43,6 +43,7 @@ public class ItemFragment extends Fragment {
     private View view;
     private Double selectedLatitude;
     private Double selectedLongitude;
+    private String selectedAddress;
     private DatabaseReference database;
     private List<place> placeList;
     public ItemFragment() {}
@@ -76,7 +77,7 @@ public class ItemFragment extends Fragment {
                 item newItem;
 
                 if(selectedLatitude != null && selectedLongitude != null){
-                    placeEntered = new place(itemLocationNameTxt.getText().toString(), selectedLatitude, selectedLongitude, null);
+                    placeEntered = new place(itemLocationNameTxt.getText().toString(), selectedLatitude, selectedLongitude, selectedAddress);
                     database.child("places").push().setValue(placeEntered);
                     newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered);
                     database.child("items").push().setValue(newItem);
@@ -102,6 +103,7 @@ public class ItemFragment extends Fragment {
         try {
             selectedLatitude = getArguments().getDouble("latitude");
             selectedLongitude = getArguments().getDouble("longitude");
+            selectedAddress = getArguments().getString("address");
         } catch (NullPointerException e){
 
         }

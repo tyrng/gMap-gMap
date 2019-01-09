@@ -298,6 +298,7 @@ public class MapsActivity extends AppCompatActivity
             Bundle  bundleItemFragment = new Bundle();
             bundleItemFragment.putDouble("latitude", addLocation.getPosition().latitude);
             bundleItemFragment.putDouble("longitude", addLocation.getPosition().longitude);
+            bundleItemFragment.putString("address", addresses.get(0).getAddressLine(0));
             itemFragment.setArguments(bundleItemFragment);
         }
         /** get toolbar name*/
@@ -327,7 +328,6 @@ public class MapsActivity extends AppCompatActivity
             case R.id.nav_fav:
                 //TODO add drawer intent
                 break;
-            }
             case R.id.action_log: {
                 AuthUI.getInstance()
                         .signOut(this)
