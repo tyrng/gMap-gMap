@@ -197,6 +197,7 @@ public class MapsActivity extends AppCompatActivity
 
         /** add drawer listeners */
         NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.bringToFront();
         navigationView.setNavigationItemSelectedListener(this);
 
         /** Image Uploading */
@@ -263,7 +264,7 @@ public class MapsActivity extends AppCompatActivity
     }
 
     //ADD ITEM FRAGMENT ----------------------------------------------------------------------------
-    private void addItemFragment(int mode){
+    private void addItemFragment(int mode) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         /** get frame to set active */
@@ -279,8 +280,7 @@ public class MapsActivity extends AppCompatActivity
         frame.setClickable(true);
         frame.setFocusable(true);
         toolbar.setTitle(R.string.nav_bar_addItem);
-        }
-
+    }
 
     /** Listener to link DiscoverFragment and ItemFragment interface */
     @Override
