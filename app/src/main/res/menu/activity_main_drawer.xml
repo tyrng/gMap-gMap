@@ -15,6 +15,9 @@
 
     <item android:title="Custom">
         <menu>
+            <item
+                android:id="@+id/action_log"
+                android:title="@string/action_settings" />
             <item android:id="@+id/action_settings"
                 android:title="@string/action_settings" />
             <item android:id="@+id/nav_aboutUs"

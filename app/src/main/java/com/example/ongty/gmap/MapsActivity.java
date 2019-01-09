@@ -1,7 +1,6 @@
 package com.example.ongty.gmap;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -9,10 +8,10 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
@@ -32,16 +31,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.Spinner;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.GeoDataClient;
@@ -59,10 +55,15 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -120,6 +121,12 @@ public class MapsActivity extends AppCompatActivity
     /** Upload Image */
     private static final int REQ_CODE = 1;
 
+    private static final int RC_SIGN_IN = 123;
+    //private Toolbar toolbar;
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
+    private Menu menu;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,7 +140,10 @@ public class MapsActivity extends AppCompatActivity
 
         // Retrieve the content view that renders the map.
         setContentView(R.layout.activity_maps);
+        checkCurrentUser();
 
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        setNavigationViewListener();
         // Construct a GeoDataClient.
         mGeoDataClient = Places.getGeoDataClient(this, null);
 
@@ -153,7 +163,6 @@ public class MapsActivity extends AppCompatActivity
 
         /** load Bottom Navigation View */
         loadBottomNavigationView();
-
     }
     /** TODO: CODE HERE ----------------------------------------------------------------------------- */
 
@@ -208,7 +217,6 @@ public class MapsActivity extends AppCompatActivity
 
         /** add drawer listeners */
         NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.bringToFront();
         navigationView.setNavigationItemSelectedListener(this);
 
         /** Image Uploading */
@@ -301,7 +309,8 @@ public class MapsActivity extends AppCompatActivity
         frame.setClickable(true);
         frame.setFocusable(true);
         toolbar.setTitle(R.string.nav_bar_addItem);
-    }
+        }
+
 
     /** Listener to link DiscoverFragment and ItemFragment interface */
     @Override
@@ -318,7 +327,22 @@ public class MapsActivity extends AppCompatActivity
             case R.id.nav_fav:
                 //TODO add drawer intent
                 break;
+            }
+            case R.id.action_log: {
+                AuthUI.getInstance()
+                        .signOut(this)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            public void onComplete(@NonNull Task<Void> task) {
+                                // ...
+                                Intent intent = new Intent(getBaseContext(), MapsActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                            }
+                        });
+                break;
+            }
         }
+        drawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }
 
@@ -636,6 +660,117 @@ public class MapsActivity extends AppCompatActivity
         } catch (SecurityException e)  {
             Log.e("Exception: %s", e.getMessage());
         }
+    }
+
+    public void checkCurrentUser() {
+        // [START check_current_user]
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            // User is signed in
+            updateUIAfterLogin();
+
+        } else {
+            createSignInIntent();
+        }
+        // [END check_current_user]
+    }
+
+    public void createSignInIntent() {
+        // [START auth_fui_create_intent]
+        // Choose authentication providers
+        List<AuthUI.IdpConfig> providers = Arrays.asList(
+                new AuthUI.IdpConfig.EmailBuilder().build(),
+                new AuthUI.IdpConfig.PhoneBuilder().build(),
+                new AuthUI.IdpConfig.GoogleBuilder().build(),
+                new AuthUI.IdpConfig.AnonymousBuilder().build());
+
+        // [START auth_fui_theme_logo]
+        startActivityForResult(
+                AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setIsSmartLockEnabled(!BuildConfig.DEBUG)
+                        .setAvailableProviders(providers)
+                        .setLogo(R.drawable.my_great_logo)      // Set logo drawable
+                        .setTheme(R.style.LoginTheme)      // Set theme
+                        .build(),
+                RC_SIGN_IN);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == RC_SIGN_IN) {
+            IdpResponse response = IdpResponse.fromResultIntent(data);
+
+            if (resultCode == RESULT_OK) {
+                // Successfully signed in
+                updateUIAfterLogin();
+
+                // ...
+            } else {
+                // Sign in failed. If response is null the user canceled the
+                // sign-in flow using the back button. Otherwise check
+                // response.getError().getErrorCode() and handle the error.
+                // ...
+                finish();
+            }
+        }
+    }
+
+    private void setNavigationViewListener() {
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.bringToFront();
+        navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    private void updateUIAfterLogin() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        View headerView = navigationView.getHeaderView(0);
+        TextView navUsername = (TextView) headerView.findViewById(R.id.UsernameID);
+        TextView navEmail = (TextView) headerView.findViewById(R.id.EmailID);
+        final ImageView profile_pic = (ImageView) headerView.findViewById(R.id.profileImage);
+        if (user.isAnonymous()) {
+            navigationView.getMenu().findItem(R.id.action_log).setTitle(R.string.action_login);
+            navUsername.setText("Hi There,");
+            navEmail.setText("Welcome to MurahApp");
+        } else {
+            navigationView.getMenu().findItem(R.id.action_log).setTitle(R.string.action_logout);
+            if (user.getDisplayName() != null) {
+                navUsername.setText(user.getDisplayName());
+            } else {
+                navUsername.setText("Hi There,");
+            }
+            if (user.getEmail() != null) {
+                navEmail.setText(user.getEmail());
+            } else {
+                navEmail.setText("Welcome to MurahApp");
+            }
+            if(user.getPhotoUrl() != null){
+                loadImage(user.getPhotoUrl().toString(), profile_pic);
+            }
+        }
+    }
+
+    public void loadImage(final String url, final ImageView iv) {
+        //start a background thread for networking
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    //download the drawable
+                    final Drawable drawable = Drawable.createFromStream((InputStream) new URL(url).getContent(), "src");
+                    //edit the view in the UI thread
+                    iv.post(new Runnable() {
+                        public void run() {
+                            iv.setImageDrawable(drawable);
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     public Marker getAddLocation() {
