@@ -24,16 +24,13 @@
     <style name="AppTheme.PopupOverlay"
         parent="ThemeOverlay.AppCompat.Light" />
 
-    <style name="GreenTheme">
-        <!-- Required for sign-in flow styling -->
-        <item name="colorPrimary">@color/material_green_500</item>
-        <item name="colorPrimaryDark">@color/material_green_700</item>
-        <item name="colorAccent">@color/material_purple_a700</item>
-
-        <item name="colorControlNormal">@color/material_green_500</item>
-        <item name="colorControlActivated">@color/material_lime_a700</item>
-        <item name="colorControlHighlight">@color/material_green_a200</item>
-        <item name="android:windowBackground">@drawable/linear_gradient</item>
+    <style name="LoginTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/gradient_background</item>
+        <item name="colorPrimary">@color/gradient_primary</item>
+        <item name="colorPrimaryDark">@color/gradient_primaryDark</item>
+        <item name="colorAccent">@color/gradient_accent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
     </style>
 
 </resources>

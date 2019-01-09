@@ -17,8 +17,8 @@
     <item android:title="Custom">
         <menu>
             <item
-                android:id="@+id/action_signout"
-                android:title="@string/action_signout"
+                android:id="@+id/action_log"
+                android:title="@string/action_login"
                 app:showAsAction="ifRoom" />
             <item android:id="@+id/action_settings"
                 android:title="@string/action_settings" />

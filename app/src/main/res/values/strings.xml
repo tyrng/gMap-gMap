@@ -29,7 +29,8 @@
     <string name="image_content">Setting Image</string>
 
     <!-- Menu: main.xml -->
-    <string name="action_signout">Sign Out</string>
+    <string name="action_logout">Log Out</string>
+    <string name="action_login">Log In</string>
     <string name="action_settings">Settings</string>
 
     <!-- Menu: activity_main_drawer -->

@@ -14,24 +14,26 @@
 
     <ImageView
         android:id="@+id/profileImage"
-        android:layout_width="93dp"
-        android:layout_height="89dp"
+        android:layout_width="match_parent"
+        android:layout_height="88dp"
         android:contentDescription="@string/nav_header_desc"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
-        app:srcCompat="@drawable/default_user" />
+        app:srcCompat="@drawable/my_great_logo" />
 
     <TextView
         android:id="@+id/UsernameID"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
         android:text="@string/nav_header_title"
+        android:gravity="center"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
     <TextView
         android:id="@+id/EmailID"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:text="@string/nav_header_subtitle" />
 
 </LinearLayout>

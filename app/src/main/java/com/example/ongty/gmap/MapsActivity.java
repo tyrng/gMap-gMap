@@ -54,7 +54,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -113,7 +112,7 @@ public class MapsActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        checkCurrentUser();
+
 
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -123,6 +122,8 @@ public class MapsActivity extends AppCompatActivity
 
         // Retrieve the content view that renders the map.
         setContentView(R.layout.activity_maps);
+        checkCurrentUser();
+
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         setNavigationViewListener();
 
@@ -558,6 +559,9 @@ public class MapsActivity extends AppCompatActivity
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             // User is signed in
+
+
+
         } else {
             createSignInIntent();
         }
@@ -577,9 +581,10 @@ public class MapsActivity extends AppCompatActivity
         startActivityForResult(
                 AuthUI.getInstance()
                         .createSignInIntentBuilder()
+                        .setIsSmartLockEnabled(!BuildConfig.DEBUG)
                         .setAvailableProviders(providers)
                         .setLogo(R.drawable.my_great_logo)      // Set logo drawable
-                        .setTheme(R.style.GreenTheme)      // Set theme
+                        .setTheme(R.style.LoginTheme)      // Set theme
                         .build(),
                 RC_SIGN_IN);
     }
@@ -600,9 +605,11 @@ public class MapsActivity extends AppCompatActivity
                 TextView navUsername = (TextView) headerView.findViewById(R.id.UsernameID);
                 TextView navEmail = (TextView) headerView.findViewById(R.id.EmailID);
                 if (user.isAnonymous()) {
+                    navigationView.getMenu().findItem(R.id.action_log).setTitle(R.string.action_login);
                     navUsername.setText("Hi There,");
                     navEmail.setText("Welcome to MurahApp");
                 }else{
+                    navigationView.getMenu().findItem(R.id.action_log).setTitle(R.string.action_logout);
                     navUsername.setText(user.getDisplayName());
                     navEmail.setText(user.getEmail());
                 }
@@ -613,6 +620,7 @@ public class MapsActivity extends AppCompatActivity
                 // sign-in flow using the back button. Otherwise check
                 // response.getError().getErrorCode() and handle the error.
                 // ...
+                finish();
             }
         }
     }
@@ -626,7 +634,7 @@ public class MapsActivity extends AppCompatActivity
                 Toast.makeText(getApplicationContext(), "Setting", Toast.LENGTH_LONG).show();
                 break;
             }
-            case R.id.action_signout: {
+            case R.id.action_log: {
                 AuthUI.getInstance()
                         .signOut(this)
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -639,6 +647,7 @@ public class MapsActivity extends AppCompatActivity
                         });
                 break;
             }
+
         }
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
