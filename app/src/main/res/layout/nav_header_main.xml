@@ -14,11 +14,12 @@
 
     <ImageView
         android:id="@+id/profileImage"
-        android:layout_width="match_parent"
+        android:layout_width="94dp"
         android:layout_height="88dp"
+        android:layout_gravity="center_horizontal"
         android:contentDescription="@string/nav_header_desc"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
-        app:srcCompat="@drawable/my_great_logo" />
+        app:srcCompat="@drawable/default_avatar_male" />
 
     <TextView
         android:id="@+id/UsernameID"

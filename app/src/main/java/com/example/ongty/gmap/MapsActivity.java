@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -27,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
@@ -53,6 +56,11 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
@@ -61,7 +69,7 @@ import java.util.List;
  */
 public class MapsActivity extends AppCompatActivity
         implements OnMapReadyCallback, DiscoverFragment.OnFragmentInteractionListener, ItemFragment.OnFragmentInteractionListener,
-        NavigationView.OnNavigationItemSelectedListener{
+        NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
     private GoogleMap mMap;
@@ -148,8 +156,17 @@ public class MapsActivity extends AppCompatActivity
         /** load Bottom Navigation View */
         loadBottomNavigationView();
 
+
     }
-    /** TODO: CODE HERE ----------------------------------------------------------------------------- */
+
+    /**
+     * TODO: CODE HERE -----------------------------------------------------------------------------
+     */
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+    }
 
     /**
      * On back pressed
@@ -553,14 +570,12 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
-
     public void checkCurrentUser() {
         // [START check_current_user]
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             // User is signed in
-
-
+            updateUIAfterLogin();
 
         } else {
             createSignInIntent();
@@ -598,21 +613,7 @@ public class MapsActivity extends AppCompatActivity
 
             if (resultCode == RESULT_OK) {
                 // Successfully signed in
-                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-                navigationView = (NavigationView) findViewById(R.id.nav_view);
-                View headerView = navigationView.getHeaderView(0);
-                TextView navUsername = (TextView) headerView.findViewById(R.id.UsernameID);
-                TextView navEmail = (TextView) headerView.findViewById(R.id.EmailID);
-                if (user.isAnonymous()) {
-                    navigationView.getMenu().findItem(R.id.action_log).setTitle(R.string.action_login);
-                    navUsername.setText("Hi There,");
-                    navEmail.setText("Welcome to MurahApp");
-                }else{
-                    navigationView.getMenu().findItem(R.id.action_log).setTitle(R.string.action_logout);
-                    navUsername.setText(user.getDisplayName());
-                    navEmail.setText(user.getEmail());
-                }
+                updateUIAfterLogin();
 
                 // ...
             } else {
@@ -629,7 +630,7 @@ public class MapsActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
-        switch (id){
+        switch (id) {
             case R.id.action_settings: {
                 Toast.makeText(getApplicationContext(), "Setting", Toast.LENGTH_LONG).show();
                 break;
@@ -640,22 +641,71 @@ public class MapsActivity extends AppCompatActivity
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             public void onComplete(@NonNull Task<Void> task) {
                                 // ...
-                                Intent intent = new Intent(getBaseContext(),MapsActivity.class);
+                                Intent intent = new Intent(getBaseContext(), MapsActivity.class);
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 startActivity(intent);
                             }
                         });
                 break;
             }
-
         }
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }
+
     private void setNavigationViewListener() {
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.bringToFront();
         navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    private void updateUIAfterLogin() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        View headerView = navigationView.getHeaderView(0);
+        TextView navUsername = (TextView) headerView.findViewById(R.id.UsernameID);
+        TextView navEmail = (TextView) headerView.findViewById(R.id.EmailID);
+        final ImageView profile_pic = (ImageView) headerView.findViewById(R.id.profileImage);
+        if (user.isAnonymous()) {
+            navigationView.getMenu().findItem(R.id.action_log).setTitle(R.string.action_login);
+            navUsername.setText("Hi There,");
+            navEmail.setText("Welcome to MurahApp");
+        } else {
+            navigationView.getMenu().findItem(R.id.action_log).setTitle(R.string.action_logout);
+            if (user.getDisplayName() != null) {
+                navUsername.setText(user.getDisplayName());
+            } else {
+                navUsername.setText("Hi There,");
+            }
+            if (user.getEmail() != null) {
+                navEmail.setText(user.getEmail());
+            } else {
+                navEmail.setText("Welcome to MurahApp");
+            }
+            if(user.getPhotoUrl() != null){
+                loadImage(user.getPhotoUrl().toString(), profile_pic);
+            }
+        }
+    }
+
+    public void loadImage(final String url, final ImageView iv) {
+        //start a background thread for networking
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    //download the drawable
+                    final Drawable drawable = Drawable.createFromStream((InputStream) new URL(url).getContent(), "src");
+                    //edit the view in the UI thread
+                    iv.post(new Runnable() {
+                        public void run() {
+                            iv.setImageDrawable(drawable);
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
 }

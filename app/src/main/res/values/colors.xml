@@ -8,7 +8,7 @@
     <!-- login UI color -->
     <color name="gradient_primaryDark">#B3FFAD</color>
     <color name="gradient_primary">#ffffff</color>
-    <color name="gradient_accent">#ffffff</color>
+    <color name="black">#000000</color>
 
     <!-- todo match/change colorPrimary from Murah prototype slide example-->
 </resources>
