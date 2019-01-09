@@ -27,6 +27,15 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.ongty.gmap.models.item;
+import com.example.ongty.gmap.models.place;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +101,8 @@ public class DiscoverFragment extends Fragment {
     }
 
     private void setItemScroller(View view){
-        RecyclerView recyclerView = view.findViewById(R.id.recycle_view_list);
+        final RecyclerView recyclerView = view.findViewById(R.id.recycle_view_list);
+        final RecyclerView.Adapter mAdapter;
 
         /** use this setting to
          improve performance if you know that changes
@@ -106,13 +116,39 @@ public class DiscoverFragment extends Fragment {
 
         /** instantiate 100 lists */
         /** repalce thsi with firebase */
-        final List<String> input = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            input.add("Test" + i);
-        }
-        // define an adapter
-        final RecyclerView.Adapter mAdapter = new Adapter(input);
-        recyclerView.setAdapter(mAdapter);
+
+        /** Instantialize firebase */
+        FirebaseApp.initializeApp(getContext());
+        FirebaseDatabase data = FirebaseDatabase.getInstance();
+        DatabaseReference database = data.getReference();
+
+        /**List to extract from firebase*/
+        final List<item> itemList = new ArrayList<>();
+        //Child the root before all the push() keys are found and add a ValueEventListener()
+        database.child("items").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                //Basically, this says "For each DataSnapshot *Data* in dataSnapshot, do what's inside the method.
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    //Get the suggestion by childing the key of the string you want to get.
+                    item i = snapshot.getValue(item.class);
+                    itemList.add(i);
+                }
+                // define an adapter
+                RecyclerView.Adapter mAdapter = new Adapter(itemList);
+                recyclerView.setAdapter(mAdapter);
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        /**Filter list*/
+
+
+
+
 
         /** put this after your definition of your recyclerview
          input in your data mode in this example a java.util.List, adjust if necessary
@@ -125,8 +161,8 @@ public class DiscoverFragment extends Fragment {
                 }
                 @Override
                 public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
-                    input.remove(viewHolder.getAdapterPosition());
-                    mAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+                    itemList.remove(viewHolder.getAdapterPosition());
+//                    mAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
                 }
             };
 

@@ -17,6 +17,7 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.transition.Slide;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -28,6 +29,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -50,6 +52,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -178,7 +181,7 @@ public class MapsActivity extends AppCompatActivity
 
     /** Top Navigation View ------------------------------------------------------------------------ */
     private void loadNavigationView(){
-        android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        final android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         /** floating action bar shown below screen */
@@ -186,19 +189,20 @@ public class MapsActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //fixme snackbar below navigationbar
                 FloatingActionButton fab = findViewById(R.id.fab);
                 if(addLocation == null) {
-                    //Snackbar.make(v, "Floating action bar", Snackbar.LENGTH_LONG).setAction("Action", null).show();
                     try {
                         addMarker(mMap);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    //TODO change icon
                     fab.setImageResource(R.drawable.ic_check_white_24dp);
                 }
                 else{
+                    Toast toast = Toast.makeText(getApplicationContext(), "New pin point selected!", Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL, 0, 456);
+                    toast.show();
+
                     addItemFragment();
                     //TODO DELETE addLocation Marker after completion
                     addLocation.remove();
@@ -214,10 +218,6 @@ public class MapsActivity extends AppCompatActivity
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
-
-        /** add drawer listeners */
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
 
         /** Image Uploading */
         ///fixme https://code.tutsplus.com/tutorials/image-upload-to-firebase-in-android-application--cms-29934
@@ -423,10 +423,10 @@ public class MapsActivity extends AppCompatActivity
                 View infoWindow = getLayoutInflater().inflate(R.layout.custom_info_contents,
                         (FrameLayout) findViewById(R.id.map), false);
 
-                TextView title = ((TextView) infoWindow.findViewById(R.id.title));
+                TextView title = (infoWindow.findViewById(R.id.title));
                 title.setText(marker.getTitle());
 
-                TextView snippet = ((TextView) infoWindow.findViewById(R.id.snippet));
+                TextView snippet = (infoWindow.findViewById(R.id.snippet));
                 snippet.setText(marker.getSnippet());
 
                 return infoWindow;
@@ -441,6 +441,7 @@ public class MapsActivity extends AppCompatActivity
 
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
+
     }
 
     /**
@@ -463,6 +464,10 @@ public class MapsActivity extends AppCompatActivity
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                     new LatLng(mLastKnownLocation.getLatitude(),
                                             mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                            //TODO FUCK
+                            //mMap.setMyLocationEnabled(false);
+                            drawCircle(new LatLng(mLastKnownLocation.getLatitude(),
+                                    mLastKnownLocation.getLongitude()));
                         } else {
                             Log.d(TAG, "Current location is null. Using defaults.");
                             Log.e(TAG, "Exception: %s", task.getException());
@@ -476,6 +481,18 @@ public class MapsActivity extends AppCompatActivity
         } catch (SecurityException e)  {
             Log.e("Exception: %s", e.getMessage());
         }
+    }
+    /**
+     * DRAW BIG ASS CIRCLE
+     */
+    private void drawCircle(LatLng latLng) {
+        CircleOptions circleOptions = new CircleOptions();
+        circleOptions.center(latLng);
+        circleOptions.fillColor(0x4Ccdffb5);
+        circleOptions.strokeColor(0xE3FFB5);
+        circleOptions.strokeWidth(4);
+        circleOptions.radius(100);
+        mMap.addCircle(circleOptions);
     }
 
 
@@ -719,7 +736,7 @@ public class MapsActivity extends AppCompatActivity
     }
 
     private void setNavigationViewListener() {
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = findViewById(R.id.nav_view);
         navigationView.bringToFront();
         navigationView.setNavigationItemSelectedListener(this);
     }
