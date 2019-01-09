@@ -699,7 +699,6 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
-
     private void setNavigationViewListener() {
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.bringToFront();
