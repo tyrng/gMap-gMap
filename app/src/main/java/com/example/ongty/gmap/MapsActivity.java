@@ -1,9 +1,11 @@
 package com.example.ongty.gmap;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
@@ -26,9 +28,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,6 +57,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -161,9 +170,12 @@ public class MapsActivity extends AppCompatActivity
                 if(addLocation == null) {
                     Snackbar.make(v, "Floating action bar", Snackbar.LENGTH_LONG).setAction("Action", null).show();
                     addMarker(mMap);
+                    //TODO change icon
+
 
                 }
                 else{
+                    addItemFragment(2); // WITH MARKER
                     //TODO DELETE addLocation Marker after completion
                     addLocation.remove();
                     addLocation = null;
@@ -229,19 +241,54 @@ public class MapsActivity extends AppCompatActivity
 
                         break;
                     case R.id.nav_bar_addItem:
-                        /** Handle Add Item action */
-                        ItemFragment itemFragment = new ItemFragment();
-
-                        fragmentTransaction.replace(R.id.fragment_container, itemFragment).addToBackStack(null).commit();
-                        fab.hide();
-                        frame.setClickable(true);
-                        frame.setFocusable(true);
-                        toolbar.setTitle(R.string.nav_bar_addItem);
+                        addItemFragment(2); // NO MARKER
 
                         break;
                 }
             }
         });
+    }
+
+    //ADD ITEM FRAGMENT ----------------------------------------------------------------------------
+    private void addItemFragment(int mode){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        /** get frame to set active */
+        FrameLayout frame = findViewById(R.id.fragment_container);
+        /** Handle Add Item action */
+        ItemFragment itemFragment = new ItemFragment();
+        /** get toolbar name*/
+        android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        FloatingActionButton fab = findViewById(R.id.fab);
+
+        fragmentTransaction.replace(R.id.fragment_container, itemFragment).addToBackStack(null).commit();
+        fab.hide();
+        frame.setClickable(true);
+        frame.setFocusable(true);
+        toolbar.setTitle(R.string.nav_bar_addItem);
+
+        EditText itemLocationNameTxt = findViewById(R.id.locationName);
+        EditText itemNameTxt = findViewById(R.id.itemName);
+        Spinner itemCategorySpin = findViewById(R.id.itemCategory);
+        EditText itemPriceTxt = findViewById(R.id.itemPrice);
+        // TODO: GET PICTURE FROM INPUT
+
+        // you need to have a list of data that you want the spinner to display
+        List<String> spinnerArray =  new ArrayList<>();
+        spinnerArray.add("Dairy");
+        spinnerArray.add("Canned");
+        spinnerArray.add("Fresh");
+        spinnerArray.add("Frozen");
+        spinnerArray.add("Grain");
+
+        ArrayAdapter<String> SpinAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, spinnerArray);
+
+        SpinAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        itemCategorySpin.setAdapter(SpinAdapter);
+
+        if(mode == 2){       // WITH MARKER
+
+        }
     }
 
     /** Listener to link DiscoverFragment and ItemFragment interface */
