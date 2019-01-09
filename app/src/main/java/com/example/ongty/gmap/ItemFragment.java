@@ -26,6 +26,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.Spinner;
 
@@ -53,7 +54,14 @@ public class ItemFragment extends Fragment {
     private String selectedAddress;
     private String uploadedImage;
     private List<place> placeList;
-    public ItemFragment() {}
+
+    public ItemFragment() {
+    }
+
+    AutoCompleteTextView itemLocationNameTxt;
+    EditText itemNameTxt;
+    Spinner itemCategorySpin;
+    EditText itemPriceTxt;
 
     @Nullable
     @Override
@@ -67,69 +75,84 @@ public class ItemFragment extends Fragment {
 
         /** Submit Button OnClick */
         Button button = view.findViewById(R.id.submitBtn);
-        button.setOnClickListener(new View.OnClickListener()
-          {
-              @Override
-              public void onClick(View v) {
-                  AutoCompleteTextView itemLocationNameTxt = view.findViewById(R.id.locationName);
-                  EditText itemNameTxt = view.findViewById(R.id.itemName);
-                  Spinner itemCategorySpin = view.findViewById(R.id.itemCategory);
-                  EditText itemPriceTxt = view.findViewById(R.id.itemPrice);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                itemLocationNameTxt = view.findViewById(R.id.locationName);
+                itemNameTxt = view.findViewById(R.id.itemName);
+                itemCategorySpin = view.findViewById(R.id.itemCategory);
+                itemPriceTxt = view.findViewById(R.id.itemPrice);
 
-                  // TODO: GET PICTURE FROM INPUT
+                // TODO: GET PICTURE FROM INPUT
 
-                  // TODO: VALIDATION
+                // TODO: VALIDATION
 
-                  place placeEntered;
-                  item newItem;
+                place placeEntered;
+                item newItem;
 
-                  if (selectedLatitude != null && selectedLongitude != null) {
-                      placeEntered = new place(itemLocationNameTxt.getText().toString(), selectedLatitude, selectedLongitude, selectedAddress);
-                      database.child("places").push().setValue(placeEntered);
-                      if(uploadedImage !=null){
-                          newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered, uploadedImage);
-                          uploadedImage = null;
-                      } else {
-                          newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered);
-                      }
+                if (selectedLatitude != null && selectedLongitude != null) {
+                    placeEntered = new place(itemLocationNameTxt.getText().toString(), selectedLatitude, selectedLongitude, selectedAddress);
+                    database.child("places").push().setValue(placeEntered);
+                    if (uploadedImage != null) {
+                        newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered, uploadedImage);
+                        uploadedImage = null;
+                    } else {
+                        newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered);
+                    }
 
-                      database.child("items").push().setValue(newItem);
-                  } else {
-                      for (place p : placeList) {
-                          if (p.getName().equals(itemLocationNameTxt.getText().toString())) {
-                              placeEntered = p;
-                              newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered);
-                              database.child("items").push().setValue(newItem);
-                              break;
-                          }
-                      }
-                  }
-              }
-          });
-            /** Image Upload Button Onclick*/
-            Button uploadBtn = view.findViewById(R.id.uploadImage);
-            uploadBtn.setOnClickListener(new View.OnClickListener(){
-                @Override
-                public void onClick(View v){
-                    try {
-                        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED
-                                && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
-                            ActivityCompat.requestPermissions((Activity) getContext(), new String[] {Manifest.permission.CAMERA}, 2);
-                        } else if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-                                && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
-                            ActivityCompat.requestPermissions((Activity) getContext(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-                        } else if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED
-                                && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
-                            ActivityCompat.requestPermissions((Activity) getContext(), new String[] {Manifest.permission.CAMERA}, 2);
-                            ActivityCompat.requestPermissions((Activity) getContext(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-                        } else {
-                            selectImage();;
+                    database.child("items").push().setValue(newItem);
+                } else {
+                    for (place p : placeList) {
+                        if (p.getName().equals(itemLocationNameTxt.getText().toString())) {
+                            placeEntered = p;
+                            newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered);
+                            database.child("items").push().setValue(newItem);
+                            break;
                         }
-                    } catch (Exception e) {
-                        Log.d("UPLOAD", e.toString());
                     }
                 }
-            });
+            }
+        });
+        Button resetButton = view.findViewById(R.id.reset_button);
+        resetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                itemLocationNameTxt = view.findViewById(R.id.locationName);
+                itemNameTxt = view.findViewById(R.id.itemName);
+                itemCategorySpin = view.findViewById(R.id.itemCategory);
+                itemPriceTxt = view.findViewById(R.id.itemPrice);
+                itemLocationNameTxt.setText("");
+                itemNameTxt.setText("");
+                itemPriceTxt.setText("");
+                itemCategorySpin.setSelection(0);
+                ((ImageView)view.findViewById(R.id.ivPreview)).setImageResource(android.R.color.transparent);
+            }
+        });
+        /** Image Upload Button Onclick*/
+        Button uploadBtn = view.findViewById(R.id.uploadImage);
+        uploadBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED
+                            && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions((Activity) getContext(), new String[]{Manifest.permission.CAMERA}, 2);
+                    } else if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                            && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
+                        ActivityCompat.requestPermissions((Activity) getContext(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                    } else if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED
+                            && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
+                        ActivityCompat.requestPermissions((Activity) getContext(), new String[]{Manifest.permission.CAMERA}, 2);
+                        ActivityCompat.requestPermissions((Activity) getContext(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                    } else {
+                        selectImage();
+                        ;
+                    }
+                } catch (Exception e) {
+                    Log.d("UPLOAD", e.toString());
+                }
+            }
+        });
         return view;
     }
 
@@ -141,7 +164,7 @@ public class ItemFragment extends Fragment {
             selectedLongitude = getArguments().getDouble("longitude");
             selectedAddress = getArguments().getString("address");
             uploadedImage = getArguments().getString("image");
-        } catch (NullPointerException e){
+        } catch (NullPointerException e) {
 
         }
         placeList = new ArrayList<>();
@@ -150,7 +173,7 @@ public class ItemFragment extends Fragment {
         FirebaseDatabase data = FirebaseDatabase.getInstance();
         DatabaseReference database = data.getReference();
 
-        if(selectedLatitude == null && selectedLongitude == null) {
+        if (selectedLatitude == null && selectedLongitude == null) {
             //Create a new ArrayAdapter with your context and the simple layout for the dropdown menu provided by Android
             final ArrayAdapter<String> autoComplete = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1);
             //Child the root before all the push() keys are found and add a ValueEventListener()
@@ -166,6 +189,7 @@ public class ItemFragment extends Fragment {
                         autoComplete.add(suggestion.getName());
                     }
                 }
+
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
 
@@ -176,14 +200,14 @@ public class ItemFragment extends Fragment {
             ACTV.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override
                 public void onFocusChange(View view, boolean b) {
-                    if(!b) {
+                    if (!b) {
                         // on focus off
                         String str = ACTV.getText().toString();
 
                         ListAdapter listAdapter = ACTV.getAdapter();
-                        for(int i = 0; i < listAdapter.getCount(); i++) {
+                        for (int i = 0; i < listAdapter.getCount(); i++) {
                             String temp = listAdapter.getItem(i).toString();
-                            if(str.compareTo(temp) == 0) {
+                            if (str.compareTo(temp) == 0) {
                                 return;
                             }
                         }
@@ -197,24 +221,24 @@ public class ItemFragment extends Fragment {
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         try {
             uploadedImage = getArguments().getString("image");
-        } catch (NullPointerException e){
+        } catch (NullPointerException e) {
 
         }
     }
 
-    public void onButtonPressed(Uri uri){
-        if(mListener != null)
+    public void onButtonPressed(Uri uri) {
+        if (mListener != null)
             mListener.onFragmentInteraction(uri);
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if(context instanceof OnFragmentInteractionListener)
+        if (context instanceof OnFragmentInteractionListener)
             mListener = (OnFragmentInteractionListener) context;
         else
             throw new RuntimeException(context.toString() + " must implement OnFragmentInteractionListener");
@@ -227,8 +251,8 @@ public class ItemFragment extends Fragment {
     }
 
     private void selectImage() {
-        final CharSequence[] items = { "Take Photo", "Choose from Library",
-                "Cancel" };
+        final CharSequence[] items = {"Take Photo", "Choose from Library",
+                "Cancel"};
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Add Photo!");
         builder.setItems(items, new DialogInterface.OnClickListener() {
