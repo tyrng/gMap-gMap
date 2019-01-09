@@ -57,6 +57,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -147,7 +148,6 @@ public class MapsActivity extends AppCompatActivity
 
         /** load Bottom Navigation View */
         loadBottomNavigationView();
-
     }
     /** TODO: CODE HERE ----------------------------------------------------------------------------- */
 
@@ -180,7 +180,7 @@ public class MapsActivity extends AppCompatActivity
 
                 }
                 else{
-                    addItemFragment(2); // WITH MARKER
+                    addItemFragment();
                     //TODO DELETE addLocation Marker after completion
                     addLocation.remove();
                     addLocation = null;
@@ -240,6 +240,10 @@ public class MapsActivity extends AppCompatActivity
 
                         break;
                     case R.id.nav_bar_map:
+                        if(addLocation!=null){
+                            addLocation.remove();
+                            addLocation = null;
+                        }
                         /** set fragment into map */
                         Fragment fragment = fragmentManager.findFragmentById(R.id.fragment_container);
 
@@ -254,8 +258,7 @@ public class MapsActivity extends AppCompatActivity
 
                         break;
                     case R.id.nav_bar_addItem:
-                        addItemFragment(2); // NO MARKER
-
+                        addItemFragment();
                         break;
                 }
             }
@@ -263,13 +266,20 @@ public class MapsActivity extends AppCompatActivity
     }
 
     //ADD ITEM FRAGMENT ----------------------------------------------------------------------------
-    private void addItemFragment(int mode){
+    private void addItemFragment(){
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         /** get frame to set active */
         FrameLayout frame = findViewById(R.id.fragment_container);
         /** Handle Add Item action */
         ItemFragment itemFragment = new ItemFragment();
+        /** Bundle to pass argument from activity to fragment */
+        if (addLocation != null){
+            Bundle  bundleItemFragment = new Bundle();
+            bundleItemFragment.putDouble("latitude", addLocation.getPosition().latitude);
+            bundleItemFragment.putDouble("longitude", addLocation.getPosition().longitude);
+            itemFragment.setArguments(bundleItemFragment);
+        }
         /** get toolbar name*/
         android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -610,5 +620,13 @@ public class MapsActivity extends AppCompatActivity
         } catch (SecurityException e)  {
             Log.e("Exception: %s", e.getMessage());
         }
+    }
+
+    public Marker getAddLocation() {
+        return addLocation;
+    }
+
+    public void setAddLocation(Marker addLocation) {
+        this.addLocation = addLocation;
     }
 }
