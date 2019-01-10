@@ -2,6 +2,7 @@ package com.example.ongty.gmap;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.media.Image;
 import android.net.Uri;
@@ -16,6 +17,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -36,10 +38,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import static android.support.v7.widget.helper.ItemTouchHelper.ACTION_STATE_SWIPE;
 
 public class DiscoverFragment extends Fragment {
     //TODO add fragment function
@@ -102,7 +107,7 @@ public class DiscoverFragment extends Fragment {
 
     private void setItemScroller(View view){
         final RecyclerView recyclerView = view.findViewById(R.id.recycle_view_list);
-        final RecyclerView.Adapter mAdapter;
+//        final RecyclerView.Adapter mAdapter;
 
         /** use this setting to
          improve performance if you know that changes
@@ -155,14 +160,48 @@ public class DiscoverFragment extends Fragment {
          adapter is your adapter */
         ItemTouchHelper.SimpleCallback simpleItemTouchCallback =
             new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+                private boolean swipeBack = false;
+
                 @Override
                 public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
                     return false;
                 }
                 @Override
                 public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
-                    itemList.remove(viewHolder.getAdapterPosition());
-//                    mAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+                    RecyclerView.Adapter mAdapter = new Adapter(itemList);
+                    if (swipeDir == ItemTouchHelper.RIGHT) {
+                        //add into shopping list
+                        Log.d("Select", "Selected");
+                        mAdapter.onDetachedFromRecyclerView(recyclerView);
+                    } else if (swipeDir == ItemTouchHelper.LEFT) {
+                        itemList.remove(viewHolder.getAdapterPosition());
+                        mAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+                        swipeBack = true;
+                    }
+                }
+
+                @Override
+                public int convertToAbsoluteDirection(int flags, int layoutDirection) {
+                    if (swipeBack) {
+                        swipeBack = false;
+                        return 0;
+                    }
+                    return super.convertToAbsoluteDirection(flags, layoutDirection);
+                }
+
+                @Override
+                public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
+                                        float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                    if (actionState == ACTION_STATE_SWIPE) {
+                        recyclerView.setOnTouchListener(new View.OnTouchListener() {
+                            @Override
+                            public boolean onTouch(View v, MotionEvent event) {
+                                swipeBack = event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP;
+                                return false;
+                            }
+                        });
+                    }
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
                 }
             };
 
