@@ -1,5 +1,6 @@
 package com.example.ongty.gmap;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -105,6 +106,27 @@ public class DiscoverFragment extends Fragment {
         void onFragmentInteraction(Uri uri);
     }
 
+    // if else for all onclick event
+    private List<item> onClickEvent(List<item> itemList, String cat){
+        List<item> filteredList = new ArrayList<>();
+        for(item i : itemList){
+            if(i.getCategory().equals("Frozen") && cat.equals("Frozen")){
+                filteredList.add(i);
+            }else if(i.getCategory().equals("Dairy") && cat.equals("Dairy")){
+                filteredList.add(i);
+            }else if(i.getCategory().equals("Grain") && cat.equals("Grain")){
+                filteredList.add(i);
+            }else if(i.getCategory().equals("Canned") && cat.equals("Canned")){
+                filteredList.add(i);
+            }else if(i.getCategory().equals("Fresh") && cat.equals("Fresh")){
+                filteredList.add(i);
+            }else if(i.getCategory().equals("Dry") && cat.equals("Dry")){
+                filteredList.add(i);
+            }
+        }
+        return filteredList;
+    }
+
     private void setItemScroller(View view){
         final RecyclerView recyclerView = view.findViewById(R.id.recycle_view_list);
 //        final RecyclerView.Adapter mAdapter;
@@ -150,11 +172,64 @@ public class DiscoverFragment extends Fragment {
         });
 
         /**Filter list*/
+        /** get button action from discover_fragment*/
+        ImageButton frozenBtn = view.findViewById(R.id.frozenBtn);
+        ImageButton dairyBtn = view.findViewById(R.id.dairyBtn);
+        ImageButton grainBtn = view.findViewById(R.id.grainBtn);
+        ImageButton cannedBtn = view.findViewById(R.id.cannedBtn);
+        ImageButton freshBtn = view.findViewById(R.id.freshBtn);
+        ImageButton dryBtn = view.findViewById(R.id.dryBtn);
+
+        frozenBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                RecyclerView.Adapter mAdapter = new Adapter(onClickEvent(itemList, "Frozen"));
+                recyclerView.setAdapter(mAdapter);
+            }
+        });
+        dairyBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                RecyclerView.Adapter mAdapter = new Adapter(onClickEvent(itemList, "Dairy"));
+                recyclerView.setAdapter(mAdapter);
+            }
+        });
+
+        grainBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                RecyclerView.Adapter mAdapter = new Adapter(onClickEvent(itemList, "Grain"));
+                recyclerView.setAdapter(mAdapter);
+            }
+        });
+
+        cannedBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                RecyclerView.Adapter mAdapter = new Adapter(onClickEvent(itemList, "Canned"));
+                recyclerView.setAdapter(mAdapter);
+            }
+        });
+
+        freshBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                RecyclerView.Adapter mAdapter = new Adapter(onClickEvent(itemList, "Fresh"));
+                recyclerView.setAdapter(mAdapter);
+            }
+        });
+
+        dryBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                RecyclerView.Adapter mAdapter = new Adapter(onClickEvent(itemList, "Dry"));
+                recyclerView.setAdapter(mAdapter);
+            }
+        });
 
 
 
-
-
+/** ------------------------------------------------------------------------------------------------------------------------------------- */
         /** put this after your definition of your recyclerview
          input in your data mode in this example a java.util.List, adjust if necessary
          adapter is your adapter */
@@ -189,6 +264,7 @@ public class DiscoverFragment extends Fragment {
                     return super.convertToAbsoluteDirection(flags, layoutDirection);
                 }
 
+                @SuppressLint("ClickableViewAccessibility")
                 @Override
                 public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
                                         float dX, float dY, int actionState, boolean isCurrentlyActive) {
@@ -204,7 +280,7 @@ public class DiscoverFragment extends Fragment {
                     super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
                 }
             };
-
+/** ------------------------------------------------------------------------------------------------------------------------------------- */
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
         itemTouchHelper.attachToRecyclerView(recyclerView);
 

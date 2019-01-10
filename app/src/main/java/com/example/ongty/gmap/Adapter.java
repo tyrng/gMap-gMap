@@ -92,7 +92,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
         // get Price
         holder.txtCat.setText(items.getCategory());
-        holder.txtPrice.setText(String.format("RM %s", items.getPrice()));
+        holder.txtPrice.setText(String.format("RM %.2f", items.getPrice()));
         // get place name
         holder.txtLocation.setText(items.getItemPlace().getName());
     }
