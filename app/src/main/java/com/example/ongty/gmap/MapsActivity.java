@@ -2,6 +2,7 @@ package com.example.ongty.gmap;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -151,13 +152,17 @@ public class MapsActivity extends AppCompatActivity
     private NavigationView navigationView;
     private Menu menu;
     private ItemFragment itemFragment;
+    private DiscoverFragment discoverFragment;
 
     /** IMAGE UPLOAD FOR ITEMS */
     private String uploadedItemImage;
 
+    private AutoCompleteTextView ACTV;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        discoverFragment = new DiscoverFragment();
 
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -190,6 +195,11 @@ public class MapsActivity extends AppCompatActivity
 
         /** load Bottom Navigation View */
         loadBottomNavigationView();
+
+        /** SEARCH BAR*/
+        ACTV = findViewById(R.id.mapSearchBar);
+        searchBar();
+
     }
     /** TODO: CODE HERE ----------------------------------------------------------------------------- */
 
@@ -267,13 +277,12 @@ public class MapsActivity extends AppCompatActivity
             FloatingActionButton fab = findViewById(R.id.fab);
             /** get frame to set active */
             FrameLayout frame = findViewById(R.id.fragment_container);
+
+
             /** get toolbar name*/
             android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
-
-            DiscoverFragment discoverFragment;
             switch (item.getItemId()) {
                 case R.id.nav_bar_discover:
-                    discoverFragment = new DiscoverFragment();
 
                     fragmentTransaction.replace(R.id.fragment_container, discoverFragment).addToBackStack(null).commit();
                     fab.hide();
@@ -918,6 +927,7 @@ public class MapsActivity extends AppCompatActivity
         FirebaseApp.initializeApp(this);
         FirebaseDatabase data = FirebaseDatabase.getInstance();
         final DatabaseReference database = data.getReference();
+        mDataPlaces = new ArrayList<>();
         //Create a new ArrayAdapter with your context and the simple layout for the dropdown menu provided by Android
         final ArrayAdapter<String> autoComplete = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
         //Child the root before all the push() keys are found and add a ValueEventListener()

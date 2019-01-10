@@ -247,20 +247,7 @@ public class DiscoverFragment extends Fragment {
                         mAdapter.notifyDataSetChanged();
 
                         // Stop progress indicator when update finish
-                        swipeRefreshLayout = view.findViewById(R.id.refresh_layout);
-                        swipeRefreshLayout.setOnRefreshListener(
-                                new SwipeRefreshLayout.OnRefreshListener() {
-                                    @Override
-                                    public void onRefresh() {
-                                        // detach and attach fragment
-                                        Fragment fragment = getFragmentManager().findFragmentById(R.id.fragment_container);
-                                        FragmentTransaction ft = getFragmentManager().beginTransaction();
-                                        ft.detach(fragment).attach(fragment).commit();
 
-                                        swipeRefreshLayout.setRefreshing(false);
-                                    }
-                                }
-                        );
                         // Log.d("Select", "Selected");
                         //mAdapter.onDetachedFromRecyclerView(recyclerView);
                     } else if (swipeDir == ItemTouchHelper.LEFT) {
@@ -269,20 +256,7 @@ public class DiscoverFragment extends Fragment {
                         //swipeBack = true;
                         // Notify the ArrayAdapter about recent changed
                         mAdapter.notifyDataSetChanged();
-                        swipeRefreshLayout = view.findViewById(R.id.refresh_layout);
-                        swipeRefreshLayout.setOnRefreshListener(
-                                new SwipeRefreshLayout.OnRefreshListener() {
-                                    @Override
-                                    public void onRefresh() {
-                                        // detach and attach fragment
-                                        Fragment fragment = getFragmentManager().findFragmentById(R.id.fragment_container);
-                                        FragmentTransaction ft = getFragmentManager().beginTransaction();
-                                        ft.detach(fragment).attach(fragment).commit();
 
-                                        swipeRefreshLayout.setRefreshing(false);
-                                    }
-                                }
-                        );
                         // Stop progress indicator when update finish
 
                     }
@@ -320,6 +294,20 @@ public class DiscoverFragment extends Fragment {
 
         // if drag to refresh, disable the animation
 
+        swipeRefreshLayout = view.findViewById(R.id.refresh_layout);
+        swipeRefreshLayout.setOnRefreshListener(
+                new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        // detach and attach fragment
+                        Fragment fragment = getFragmentManager().findFragmentById(R.id.fragment_container);
+                        FragmentTransaction ft = getFragmentManager().beginTransaction();
+                        ft.detach(fragment).attach(fragment).commit();
+
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                }
+        );
     }
 
     private void swipeToShoppingList(String userId, String name, String category, Double price, place itemPlace){
