@@ -21,7 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.ongty.gmap.models.item;
-import com.example.ongty.gmap.models.shopping;
+import com.example.ongty.gmap.models.shoppingList;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -114,41 +114,28 @@ public class ShoppingList extends Fragment {
         DatabaseReference database = data.getReference();
 
         /**List to extract from firebase*/
-        final List<shopping> itemList = new ArrayList<>();
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        final List<shoppingList> itemList = new ArrayList<>();
+        final String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         //Child the root before all the push() keys are found and add a ValueEventListener()
-        database.child("shopping").orderByChild("userid").equalTo(userId).addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
+                database.child("shopping").addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            if (snapshot.child("userId").getValue().equals(userId)) {
+                                shoppingList i = snapshot.getValue(shoppingList.class);
+                                itemList.add(i);
+                            }
+                            //Get the suggestion by childing the key of the string you want to get.
+                        }
+                        // define an adapter
+                        RecyclerView.Adapter mAdapter = new shopAdapter(itemList);
+                        recyclerView.setAdapter(mAdapter);
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
 
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    //Get the suggestion by childing the key of the string you want to get.
-                    shopping i = snapshot.getValue(shopping.class);
-                    itemList.add(i);
-                }
-                // define an adapter
-                RecyclerView.Adapter mAdapter = new shopAdapter(itemList);
-                recyclerView.setAdapter(mAdapter);
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
+                    }
+                });
 
 
 

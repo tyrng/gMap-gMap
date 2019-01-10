@@ -19,9 +19,11 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 
 import com.example.ongty.gmap.models.item;
 import com.example.ongty.gmap.models.place;
+import com.example.ongty.gmap.models.shoppingList;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -34,7 +36,6 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.ongty.gmap.models.shoppingList;
 
 import static android.support.v7.widget.helper.ItemTouchHelper.ACTION_STATE_SWIPE;
 
@@ -118,7 +119,6 @@ public class DiscoverFragment extends Fragment {
         return filteredList;
     }
 
-    private void setItemScroller(View view){
     private void setItemScroller(final View view){
         final RecyclerView recyclerView = view.findViewById(R.id.recycle_view_list);
 //        final RecyclerView.Adapter mAdapter;
