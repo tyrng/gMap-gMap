@@ -1,10 +1,7 @@
 package com.example.ongty.gmap;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -20,29 +17,22 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.GridView;
-import android.widget.HorizontalScrollView;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.ongty.gmap.models.item;
 import com.example.ongty.gmap.models.place;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+
+import com.example.ongty.gmap.models.shoppingList;
 
 import static android.support.v7.widget.helper.ItemTouchHelper.ACTION_STATE_SWIPE;
 
@@ -51,6 +41,7 @@ public class DiscoverFragment extends Fragment {
     private OnFragmentInteractionListener mListener;
     private View view;
     private SwipeRefreshLayout swipeRefreshLayout;
+
 
     /** Constructor */
     public DiscoverFragment() {}
@@ -105,7 +96,7 @@ public class DiscoverFragment extends Fragment {
         void onFragmentInteraction(Uri uri);
     }
 
-    private void setItemScroller(View view){
+    private void setItemScroller(final View view){
         final RecyclerView recyclerView = view.findViewById(R.id.recycle_view_list);
 //        final RecyclerView.Adapter mAdapter;
 
@@ -153,8 +144,6 @@ public class DiscoverFragment extends Fragment {
 
 
 
-
-
         /** put this after your definition of your recyclerview
          input in your data mode in this example a java.util.List, adjust if necessary
          adapter is your adapter */
@@ -171,23 +160,65 @@ public class DiscoverFragment extends Fragment {
                     RecyclerView.Adapter mAdapter = new Adapter(itemList);
                     if (swipeDir == ItemTouchHelper.RIGHT) {
                         //add into shopping list
-                        Log.d("Select", "Selected");
-                        mAdapter.onDetachedFromRecyclerView(recyclerView);
+                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                        swipeToShoppingList(user.getUid().toString(),itemList.get(viewHolder.getAdapterPosition()).getName(),
+                                itemList.get(viewHolder.getAdapterPosition()).getCategory(),itemList.get(viewHolder.getAdapterPosition()).getPrice(),
+                                itemList.get(viewHolder.getAdapterPosition()).getItemPlace());
+
+                        // Notify the ArrayAdapter about recent changed
+                        mAdapter.notifyDataSetChanged();
+
+                        // Stop progress indicator when update finish
+                        swipeRefreshLayout = view.findViewById(R.id.refresh_layout);
+                        swipeRefreshLayout.setOnRefreshListener(
+                                new SwipeRefreshLayout.OnRefreshListener() {
+                                    @Override
+                                    public void onRefresh() {
+                                        // detach and attach fragment
+                                        Fragment fragment = getFragmentManager().findFragmentById(R.id.fragment_container);
+                                        FragmentTransaction ft = getFragmentManager().beginTransaction();
+                                        ft.detach(fragment).attach(fragment).commit();
+
+                                        swipeRefreshLayout.setRefreshing(false);
+                                    }
+                                }
+                        );
+                        // Log.d("Select", "Selected");
+                        //mAdapter.onDetachedFromRecyclerView(recyclerView);
                     } else if (swipeDir == ItemTouchHelper.LEFT) {
-                        itemList.remove(viewHolder.getAdapterPosition());
-                        mAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-                        swipeBack = true;
+                        //itemList.remove(viewHolder.getAdapterPosition());
+                        //mAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+                        //swipeBack = true;
+                        // Notify the ArrayAdapter about recent changed
+                        mAdapter.notifyDataSetChanged();
+                        swipeRefreshLayout = view.findViewById(R.id.refresh_layout);
+                        swipeRefreshLayout.setOnRefreshListener(
+                                new SwipeRefreshLayout.OnRefreshListener() {
+                                    @Override
+                                    public void onRefresh() {
+                                        // detach and attach fragment
+                                        Fragment fragment = getFragmentManager().findFragmentById(R.id.fragment_container);
+                                        FragmentTransaction ft = getFragmentManager().beginTransaction();
+                                        ft.detach(fragment).attach(fragment).commit();
+
+                                        swipeRefreshLayout.setRefreshing(false);
+                                    }
+                                }
+                        );
+                        // Stop progress indicator when update finish
+
                     }
+
                 }
 
-                @Override
-                public int convertToAbsoluteDirection(int flags, int layoutDirection) {
-                    if (swipeBack) {
-                        swipeBack = false;
-                        return 0;
-                    }
-                    return super.convertToAbsoluteDirection(flags, layoutDirection);
-                }
+//                @Override
+//                public int convertToAbsoluteDirection(int flags, int layoutDirection) {
+//                    if (swipeBack) {
+//                        swipeBack = false;
+//                        return 0;
+//                    }
+//                    return super.convertToAbsoluteDirection(flags, layoutDirection);
+//                }
 
                 @Override
                 public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
@@ -209,19 +240,16 @@ public class DiscoverFragment extends Fragment {
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
         // if drag to refresh, disable the animation
-        swipeRefreshLayout = view.findViewById(R.id.refresh_layout);
-        swipeRefreshLayout.setOnRefreshListener(
-                new SwipeRefreshLayout.OnRefreshListener() {
-                    @Override
-                    public void onRefresh() {
-                        // detach and attach fragment
-                        Fragment fragment = getFragmentManager().findFragmentById(R.id.fragment_container);
-                        FragmentTransaction ft = getFragmentManager().beginTransaction();
-                        ft.detach(fragment).attach(fragment).commit();
 
-                        swipeRefreshLayout.setRefreshing(false);
-                    }
-                }
-        );
+    }
+
+    private void swipeToShoppingList(String userId, String name, String category, Double price, place itemPlace){
+        /** Instantialize firebase */
+        FirebaseApp.initializeApp(getContext());
+        FirebaseDatabase data = FirebaseDatabase.getInstance();
+        final DatabaseReference database = data.getReference();
+
+        shoppingList shopping =  new shoppingList(userId, name, category, price, itemPlace);
+        database.child("shopping").push().setValue(shopping);
     }
 }
