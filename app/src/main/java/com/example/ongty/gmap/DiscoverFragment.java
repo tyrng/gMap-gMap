@@ -162,6 +162,7 @@ public class DiscoverFragment extends Fragment {
                 @Override
                 public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
                     itemList.remove(viewHolder.getAdapterPosition());
+                    itemList.get(viewHolder.getAdapterPosition());
 //                    mAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
                 }
             };

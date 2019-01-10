@@ -2,6 +2,7 @@ package com.example.ongty.gmap;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -35,14 +36,22 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.ongty.gmap.models.item;
+import com.example.ongty.gmap.models.place;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -56,6 +65,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -63,8 +73,14 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -85,7 +101,7 @@ import java.util.Objects;
  */
 public class MapsActivity extends AppCompatActivity
         implements OnMapReadyCallback, DiscoverFragment.OnFragmentInteractionListener, ItemFragment.OnFragmentInteractionListener
-, NavigationView.OnNavigationItemSelectedListener {
+, NavigationView.OnNavigationItemSelectedListener, GoogleMap.OnMarkerClickListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
     private GoogleMap mMap;
@@ -122,10 +138,7 @@ public class MapsActivity extends AppCompatActivity
     private LatLng[] mLikelyPlaceLatLngs;
 
     //TODO LINK PHP SERVER WITH MARKING LOCATION FOR ADDING NEW LOCATION (TOGETHER WITH PRODUCTS)
-    private String[] mDataPlaceNames;
-    private String[] mDataPlaceAddresses;
-    private String[] mDatePlaceAttributions;
-    private LatLng[] mDataPlaceLatLngs;
+    private List<place> mDataPlaces;
 
     private Marker addLocation;
     private List<Address> addresses;
@@ -139,9 +152,12 @@ public class MapsActivity extends AppCompatActivity
     private NavigationView navigationView;
     private Menu menu;
     private ItemFragment itemFragment;
+    private DiscoverFragment discoverFragment;
 
     /** IMAGE UPLOAD FOR ITEMS */
     private String uploadedItemImage;
+
+    private AutoCompleteTextView ACTV;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -152,6 +168,9 @@ public class MapsActivity extends AppCompatActivity
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
+
+        //INITIALIZE PLACELIST
+        mDataPlaces = new ArrayList<>();
 
         // Retrieve the content view that renders the map.
         setContentView(R.layout.activity_maps);
@@ -173,11 +192,17 @@ public class MapsActivity extends AppCompatActivity
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+
         /** load all navigationView here */
         loadNavigationView();
 
         /** load Bottom Navigation View */
         loadBottomNavigationView();
+
+        /** SEARCH BAR*/
+        ACTV = findViewById(R.id.mapSearchBar);
+        searchBar();
+
     }
     /** TODO: CODE HERE ----------------------------------------------------------------------------- */
 
@@ -256,6 +281,7 @@ public class MapsActivity extends AppCompatActivity
             /** get frame to set active */
             FrameLayout frame = findViewById(R.id.fragment_container);
 
+
             /** get toolbar name*/
             android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
             DiscoverFragment discoverFragment;
@@ -265,11 +291,15 @@ public class MapsActivity extends AppCompatActivity
 
                     fragmentTransaction.replace(R.id.fragment_container, discoverFragment).addToBackStack(null).commit();
                     fab.hide();
+                    ACTV.setVisibility(View.INVISIBLE);
                     frame.setClickable(true);
                     frame.setFocusable(true);
                     toolbar.setTitle(R.string.nav_bar_discover);
                     return true;
                 case R.id.nav_bar_map:
+                    /** RESET FAB BUTTON */
+                    fab.setImageResource(R.drawable.ic_add_white_24dp);
+                    ACTV.setVisibility(View.VISIBLE);
                     if(addLocation!=null){
                         addLocation.remove();
                         addLocation = null;
@@ -287,6 +317,7 @@ public class MapsActivity extends AppCompatActivity
                     }
                     return true;
                 case R.id.nav_bar_addItem:
+                    ACTV.setVisibility(View.INVISIBLE);
                     addItemFragment();
                     return true;
             }
@@ -361,7 +392,7 @@ public class MapsActivity extends AppCompatActivity
     /** Select 'Get Location' Button in Toolbar */
     public void addMarker(GoogleMap googleMap) throws IOException {
         //TODO add Marker
-        LatLng currentLocation = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
+        LatLng currentLocation = new LatLng(mMap.getCameraPosition().target.latitude, mMap.getCameraPosition().target.longitude);
         addLocation = googleMap.addMarker(new MarkerOptions().position(currentLocation).draggable(true).title("Hold and drag me around!"));
         addLocation.showInfoWindow();
 
@@ -416,6 +447,7 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
+        mMap.setOnMarkerClickListener(this);
 
         // Use a custom info window adapter to handle multiple lines of text in the
         // info window contents.
@@ -452,6 +484,9 @@ public class MapsActivity extends AppCompatActivity
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
 
+        //fetch existing location
+        fetchExistingLocation(mMap);
+
     }
 
     /**
@@ -474,7 +509,7 @@ public class MapsActivity extends AppCompatActivity
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                     new LatLng(mLastKnownLocation.getLatitude(),
                                             mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
-                            //TODO FUCK
+                            //TODO
                             //mMap.setMyLocationEnabled(false);
                             drawCircle(new LatLng(mLastKnownLocation.getLatitude(),
                                     mLastKnownLocation.getLongitude()));
@@ -501,7 +536,7 @@ public class MapsActivity extends AppCompatActivity
         circleOptions.fillColor(0x4Ccdffb5);
         circleOptions.strokeColor(0xE3FFB5);
         circleOptions.strokeWidth(4);
-        circleOptions.radius(100);
+        circleOptions.radius(5000);
         mMap.addCircle(circleOptions);
     }
 
@@ -846,4 +881,120 @@ public class MapsActivity extends AppCompatActivity
         ivImage.setImageBitmap(bm);
     }
 
+    private void fetchExistingLocation(final GoogleMap mMap){
+        /** Instantialize firebase */
+        FirebaseApp.initializeApp(this);
+        FirebaseDatabase data = FirebaseDatabase.getInstance();
+        DatabaseReference database = data.getReference();
+
+        //Child the root before all the push() keys are found and add a ValueEventListener()
+        database.child("places").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                //Basically, this says "For each DataSnapshot *Data* in dataSnapshot, do what's inside the method.
+                for (DataSnapshot suggestionSnapshot : dataSnapshot.getChildren()) {
+                    place onePlace = suggestionSnapshot.getValue(place.class);
+                    MarkerOptions markerOptions = new MarkerOptions();
+                    markerOptions.position(new LatLng(onePlace.getLatitude(), onePlace.getLongitude()));
+                    markerOptions.title(onePlace.getName());
+                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                    mMap.addMarker(markerOptions);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+    private void searchBar() {
+        /** Instantialize firebase */
+        FirebaseApp.initializeApp(this);
+        FirebaseDatabase data = FirebaseDatabase.getInstance();
+        final DatabaseReference database = data.getReference();
+        //Create a new ArrayAdapter with your context and the simple layout for the dropdown menu provided by Android
+        final ArrayAdapter<String> autoComplete = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
+        //Child the root before all the push() keys are found and add a ValueEventListener()
+        database.child("places").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot suggestionSnapshot : dataSnapshot.getChildren()) {
+                            //Get the suggestion by childing the key of the string you want to get.
+                            place suggestion = suggestionSnapshot.getValue(place.class);
+                            mDataPlaces.add(suggestion);
+                            //Add the retrieved string to the list
+                            autoComplete.add(suggestion.getName());
+                        }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        final AutoCompleteTextView ACTV = (AutoCompleteTextView) findViewById(R.id.mapSearchBar);
+        ACTV.setAdapter(autoComplete);
+        ACTV.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                if (!b) {
+                    // on focus off
+                    String str = ACTV.getText().toString();
+
+                    ListAdapter listAdapter = ACTV.getAdapter();
+                    for (int i = 0; i < listAdapter.getCount(); i++) {
+                        String temp = listAdapter.getItem(i).toString();
+                        if (str.compareTo(temp) == 0) {
+                            return;
+                        }
+                    }
+                    ACTV.setText("");
+
+                }
+            }
+        });
+        ACTV.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View arg1, int pos, long id) {
+                InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                in.hideSoftInputFromWindow(arg1.getApplicationWindowToken(), 0);
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mDataPlaces.get(pos).getLatitude(),mDataPlaces.get(pos).getLongitude()), DEFAULT_ZOOM));
+            }
+        });
+    }
+
+    @Override
+    public boolean onMarkerClick(final Marker marker) {
+        if (!marker.equals(addLocation) && marker!=null)
+        {
+            /** Instantialize firebase */
+            FirebaseApp.initializeApp(this);
+            FirebaseDatabase data = FirebaseDatabase.getInstance();
+            final DatabaseReference database = data.getReference();
+            database.child("places").addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    for (DataSnapshot suggestionSnapshot : dataSnapshot.getChildren()) {
+                        //Get the suggestion by childing the key of the string you want to get.
+                        place suggestion = suggestionSnapshot.getValue(place.class);
+                        if(suggestion.getLatitude() == marker.getPosition().latitude && suggestion.getLongitude() == marker.getPosition().longitude){
+                            Bundle  bundleItemFragment = new Bundle();
+                            bundleItemFragment.putDouble("mLatitude", marker.getPosition().latitude);
+                            bundleItemFragment.putDouble("mLongitude", marker.getPosition().longitude);
+                            discoverFragment.setArguments(bundleItemFragment);
+                            break;
+                        }
+                    }
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+
+        }
+        return true;
+    }
 }
