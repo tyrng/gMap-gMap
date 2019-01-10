@@ -14,4 +14,5 @@
 
     <!-- MapsActivity color used -->
     <color name="colorGreenPale">#bdff78d6</color>
+    <color name="colorRed">#f7ff160a</color>
 </resources>
