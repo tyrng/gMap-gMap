@@ -245,7 +245,8 @@ public class DiscoverFragment extends Fragment {
                 public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
                     RecyclerView.Adapter mAdapter = new Adapter(itemList);
                     if (swipeDir == ItemTouchHelper.RIGHT) {
-                        //add into shopping list
+                        //add into shopping listss
+
                         Log.d("Select", "Selected");
                         mAdapter.onDetachedFromRecyclerView(recyclerView);
                     } else if (swipeDir == ItemTouchHelper.LEFT) {
@@ -255,6 +256,7 @@ public class DiscoverFragment extends Fragment {
                     }
                 }
 
+                /** Swipe directly to left */
                 @Override
                 public int convertToAbsoluteDirection(int flags, int layoutDirection) {
                     if (swipeBack) {

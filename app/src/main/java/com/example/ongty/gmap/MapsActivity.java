@@ -85,7 +85,7 @@ import java.util.Objects;
  */
 public class MapsActivity extends AppCompatActivity
         implements OnMapReadyCallback, DiscoverFragment.OnFragmentInteractionListener, ItemFragment.OnFragmentInteractionListener
-, NavigationView.OnNavigationItemSelectedListener {
+, NavigationView.OnNavigationItemSelectedListener, ShoppingList.OnFragmentInteractionListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
     private GoogleMap mMap;
@@ -255,9 +255,9 @@ public class MapsActivity extends AppCompatActivity
             FloatingActionButton fab = findViewById(R.id.fab);
             /** get frame to set active */
             FrameLayout frame = findViewById(R.id.fragment_container);
-
             /** get toolbar name*/
             android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+
             DiscoverFragment discoverFragment;
             switch (item.getItemId()) {
                 case R.id.nav_bar_discover:
@@ -335,8 +335,25 @@ public class MapsActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         /** Handle drawer item clicks here*/
         switch (item.getItemId()){
-            case R.id.nav_fav:
-                //TODO add drawer intent
+            case R.id.nav_shop_list:
+                ShoppingList shoppingList = new ShoppingList();
+
+                /** hide or show button when navigate */
+                FloatingActionButton fab = findViewById(R.id.fab);
+                /** get frame to set active */
+                FrameLayout frame = findViewById(R.id.fragment_container);
+                /** get toolbar name*/
+                android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+                fragmentTransaction.replace(R.id.fragment_container, shoppingList).addToBackStack(null).commit();
+                fab.hide();
+                frame.setClickable(true);
+                frame.setFocusable(true);
+                toolbar.setTitle(R.string.nav_shop_list);
+
                 break;
             case R.id.action_log: {
                 AuthUI.getInstance()
