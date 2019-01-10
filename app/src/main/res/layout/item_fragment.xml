@@ -35,8 +35,8 @@
             android:layout_height="50dp"
             android:layout_alignEnd="@+id/ivPreview"
             android:layout_alignBottom="@+id/ivPreview"
-            android:layout_margin="30px"
-            android:background="@drawable/camera_button_bg" />
+            android:layout_margin="15dp"
+            android:background="@drawable/ic_camera_alt_white_24dp" />
 
     </RelativeLayout>
 

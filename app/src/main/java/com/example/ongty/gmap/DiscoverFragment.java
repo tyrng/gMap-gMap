@@ -255,12 +255,16 @@ public class DiscoverFragment extends Fragment {
                         Fragment fragment = getFragmentManager().findFragmentById(R.id.fragment_container);
                         FragmentTransaction ft = getFragmentManager().beginTransaction();
                         ft.detach(fragment).attach(fragment).commit();
+
                         Toast toast= Toast.makeText(getContext(),"You have added "+itemList.get(viewHolder.getAdapterPosition()).getName()+"to your shopping list",Toast.LENGTH_LONG);
                         toast.setGravity(Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL, 0, 150);
-                        toast.show();swipeRefreshLayout.setRefreshing(false);
+                        toast.show();
+                        swipeRefreshLayout.setRefreshing(false);
                     }
 
                 }
+
+
 
 //                @Override
 //                public int convertToAbsoluteDirection(int flags, int layoutDirection) {

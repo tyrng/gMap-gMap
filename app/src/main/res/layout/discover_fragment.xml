@@ -20,8 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="left"
             android:orientation="horizontal"
-            android:layout_marginBottom="-20px"
-            >
+            android:layout_marginBottom="-20px">
 
             <ImageButton
                 android:id="@+id/frozenBtn"

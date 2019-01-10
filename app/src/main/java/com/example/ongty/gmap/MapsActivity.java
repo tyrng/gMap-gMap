@@ -147,12 +147,15 @@ public class MapsActivity extends AppCompatActivity
     private static final int REQ_CODE = 1;
 
     private static final int RC_SIGN_IN = 123;
-    //private Toolbar toolbar;
+    android.support.v7.widget.Toolbar toolbar;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private Menu menu;
     private ItemFragment itemFragment;
     private DiscoverFragment discoverFragment;
+
+    private FloatingActionButton fab;
+    private FrameLayout frame;
 
     /** IMAGE UPLOAD FOR ITEMS */
     private String uploadedItemImage;
@@ -174,7 +177,7 @@ public class MapsActivity extends AppCompatActivity
         setContentView(R.layout.activity_maps);
         checkCurrentUser();
 
-        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawerLayout = findViewById(R.id.drawer_layout);
         setNavigationViewListener();
         // Construct a GeoDataClient.
         mGeoDataClient = Places.getGeoDataClient(this, null);
@@ -209,8 +212,18 @@ public class MapsActivity extends AppCompatActivity
         DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         if(drawerLayout.isDrawerOpen(GravityCompat.START))
             drawerLayout.closeDrawer(GravityCompat.START);
-        else
+        else {
+
+            if(findViewById(R.id.fragment_container).isShown()) {
+                fab.show();
+                frame = findViewById(R.id.fragment_container);
+                frame.bringToFront();
+                navigationView = findViewById(R.id.nav_view);
+                navigationView.bringToFront();
+            }
+
             super.onBackPressed();
+        }
     }
 
     /** Top Navigation View ------------------------------------------------------------------------ */
@@ -219,18 +232,18 @@ public class MapsActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         /** floating action bar shown below screen */
-        FloatingActionButton fab = findViewById(R.id.fab);
+        fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FloatingActionButton fab = findViewById(R.id.fab);
+                fab = findViewById(R.id.fab);
                 if(addLocation == null) {
                     try {
+                        fab.setImageResource(R.drawable.ic_check_white_24dp);
                         addMarker(mMap);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    fab.setImageResource(R.drawable.ic_check_white_24dp);
                 }
                 else{
                     Toast toast = Toast.makeText(getApplicationContext(), "New pin point selected!", Toast.LENGTH_SHORT);
@@ -252,10 +265,6 @@ public class MapsActivity extends AppCompatActivity
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
-
-        /** Image Uploading */
-        ///fixme https://code.tutsplus.com/tutorials/image-upload-to-firebase-in-android-application--cms-29934
-
     }
 
     /** Bottom Navigation View --------------------------------------------------------------------------------------------------- */
@@ -274,21 +283,23 @@ public class MapsActivity extends AppCompatActivity
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
             /** hide or show button when navigate */
-            FloatingActionButton fab = findViewById(R.id.fab);
+            fab = findViewById(R.id.fab);
             /** get frame to set active */
-            FrameLayout frame = findViewById(R.id.fragment_container);
-
-
+            frame = findViewById(R.id.fragment_container);
             /** get toolbar name*/
-            android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+            toolbar = findViewById(R.id.toolbar);
+            navigationView = findViewById(R.id.nav_view);
+
             switch (item.getItemId()) {
                 case R.id.nav_bar_discover:
 
                     fragmentTransaction.replace(R.id.fragment_container, discoverFragment).addToBackStack(null).commit();
                     fab.hide();
                     ACTV.setVisibility(View.INVISIBLE);
-                    frame.setClickable(true);
-                    frame.setFocusable(true);
+//                    frame.setClickable(true);
+//                    frame.setFocusable(true);
+                    frame.bringChildToFront(findViewById(R.id.fragment_container));
+                    navigationView.bringToFront();
                     toolbar.setTitle(R.string.nav_bar_discover);
                     return true;
                 case R.id.nav_bar_map:
@@ -305,14 +316,19 @@ public class MapsActivity extends AppCompatActivity
                     /** only remove when fragment is not the gMap */
                     if(fragment != null) {
                         fragmentTransaction.remove(fragment).addToBackStack(null).commit();
+
+                        NavigationView nav = findViewById(R.id.nav_view);
+                        nav.bringToFront();
+
                         fab.show();
-                        frame.setClickable(false);
-                        frame.setFocusable(false);
+                        frame.bringToFront();
                         toolbar.setTitle(R.string.app_name);
+                        navigationView.bringToFront();
                     }
                     return true;
                 case R.id.nav_bar_addItem:
                     ACTV.setVisibility(View.INVISIBLE);
+                    navigationView.bringToFront();
                     addItemFragment();
                     return true;
             }
@@ -326,9 +342,10 @@ public class MapsActivity extends AppCompatActivity
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         /** get frame to set active */
-        FrameLayout frame = findViewById(R.id.fragment_container);
+        frame = findViewById(R.id.fragment_container);
         /** Handle Add Item action */
         itemFragment = new ItemFragment();
+
         /** Bundle to pass argument from activity to fragment */
         if (addLocation != null){
             Bundle  bundleItemFragment = new Bundle();
@@ -343,8 +360,9 @@ public class MapsActivity extends AppCompatActivity
 
         fragmentTransaction.replace(R.id.fragment_container, itemFragment).addToBackStack(null).commit();
         fab.hide();
-        frame.setClickable(true);
-        frame.setFocusable(true);
+//        frame.setClickable(true);
+//        frame.setFocusable(true);
+        frame.bringChildToFront(findViewById(R.id.fragment_container));
         toolbar.setTitle(R.string.nav_bar_addItem);
         }
 
@@ -365,20 +383,26 @@ public class MapsActivity extends AppCompatActivity
                 ShoppingList shoppingList = new ShoppingList();
 
                 /** hide or show button when navigate */
-                FloatingActionButton fab = findViewById(R.id.fab);
+                fab = findViewById(R.id.fab);
                 /** get frame to set active */
-                FrameLayout frame = findViewById(R.id.fragment_container);
+                frame = findViewById(R.id.fragment_container);
                 /** get toolbar name*/
-                android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+                toolbar = findViewById(R.id.toolbar);
+                /** */
+                navigationView = findViewById(R.id.nav_view);
+                AutoCompleteTextView searchText = findViewById(R.id.mapSearchBar);
 
                 FragmentManager fragmentManager = getSupportFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
                 fragmentTransaction.replace(R.id.fragment_container, shoppingList).addToBackStack(null).commit();
                 fab.hide();
-                frame.setClickable(true);
-                frame.setFocusable(true);
+//                frame.setClickable(true);
+//                frame.setFocusable(true);
+
+                frame.bringToFront();
                 toolbar.setTitle(R.string.nav_shop_list);
+                navigationView.bringToFront();
 
                 break;
             case R.id.action_log: {

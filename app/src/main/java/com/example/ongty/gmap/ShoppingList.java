@@ -105,9 +105,6 @@ public class ShoppingList extends Fragment {
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        /** instantiate 100 lists */
-        /** repalce thsi with firebase */
-
         /** Instantialize firebase */
         FirebaseApp.initializeApp(getContext());
         FirebaseDatabase data = FirebaseDatabase.getInstance();
