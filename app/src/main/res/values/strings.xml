@@ -44,7 +44,7 @@
     <string name="action_settings">Settings</string>
 
     <!-- Menu: activity_main_drawer -->
-    <string name="nav_fav">Favourite</string>
+    <string name="nav_shop_list">Shopping List</string>
     <string name="nav_notification">Notification</string>
     <string name="nav_history">History</string>
     <string name="nav_aboutUs">About Us</string>

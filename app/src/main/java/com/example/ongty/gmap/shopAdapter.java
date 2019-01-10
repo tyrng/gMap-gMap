@@ -13,9 +13,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.ongty.gmap.models.item;
+import com.example.ongty.gmap.models.shoppingList;
 
-public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
-    private List<item> values;
+public class shopAdapter extends RecyclerView.Adapter<shopAdapter.ViewHolder> {
+    private List<shoppingList> values;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -47,7 +48,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
      * @param position : position of List
      * @param itemList : item name of the position
      * */
-    public void add(int position, item itemList) {
+    public void add(int position, shoppingList itemList) {
         values.add(position, itemList);
         notifyItemInserted(position);
     }
@@ -60,14 +61,14 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     }
 
     /** Provide a suitable constructor (depends on the kind of dataset) */
-    public Adapter(List<item> myDataset) {
+    public shopAdapter(List<shoppingList> myDataset) {
         values = myDataset;
     }
 
     // Create new views (invoked by the layout manager)
     @NonNull
     @Override
-    public Adapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent,
+    public shopAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent,
                                                  int viewType) {
         // create a new view
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
@@ -81,7 +82,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     public void onBindViewHolder(@NonNull ViewHolder holder, @SuppressLint("RecyclerView") final int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        final item items = values.get(position);
+        final shoppingList items = values.get(position);
         holder.txtTitle.setText(items.getName());
         holder.txtTitle.setOnClickListener(new OnClickListener() {
             @Override
