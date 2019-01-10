@@ -8,121 +8,75 @@
     android:background="?android:attr/colorBackground"
     tools:context=".DiscoverFragment">
 
-     add recyclerview and dynamic image buttons
     <HorizontalScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="80px"
+        >
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_gravity="left"
+            android:orientation="horizontal"
+            android:layout_marginBottom="-20px"
+            >
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-                <TextView
-                    android:id="@+id/frozen"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/frozen" />
+            <ImageButton
+                android:id="@+id/frozenBtn"
+                android:layout_width="150px"
+                android:layout_height="150px"
+                android:layout_margin="20px"
+                android:background="@drawable/frozen"
+                android:text="@string/frozen"
+                android:tooltipText="Frozen"/>
 
-                <ImageButton
-                    android:id="@+id/frozenBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="@string/frozen"
-                    android:src="@drawable/ic_ac_unit_black_24dp"/>
+            <ImageButton
+                android:id="@+id/dairyBtn"
+                android:layout_width="150px"
+                android:layout_height="150px"
+                android:layout_margin="20px"
+                android:background="@drawable/dairy"
+                android:text="@string/dairy"
+                android:tooltipText="dairy"/>
 
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-                <TextView
-                    android:id="@+id/dairy"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/dairy" />
+            <ImageButton
+                android:id="@+id/grainBtn"
+                android:layout_width="150px"
+                android:layout_height="150px"
+                android:layout_margin="20px"
+                android:background="@drawable/grain"
+                android:text="@string/grain"
+                android:tooltipText="grain"/>
 
-                <ImageButton
-                    android:id="@+id/dairyBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="@string/dairy"
-                    android:src="@drawable/ic_ac_unit_black_24dp"/>
+            <ImageButton
+                android:id="@+id/cannedBtn"
+                android:layout_width="150px"
+                android:layout_height="150px"
+                android:layout_margin="20px"
+                android:background="@drawable/tincan"
+                android:text="@string/canned"
+                android:tooltipText="canned"/>
 
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-                <TextView
-                    android:id="@+id/grain"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/grain" />
+            <ImageButton
+                android:id="@+id/freshBtn"
+                android:layout_width="150px"
+                android:layout_height="150px"
+                android:layout_margin="20px"
+                android:background="@drawable/fresh"
+                android:text="@string/fresh"
+                android:tooltipText="fresh"/>
 
-                <ImageButton
-                    android:id="@+id/grainBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="@string/grain"
-                    android:src="@drawable/ic_ac_unit_black_24dp"/>
+            <ImageButton
+                android:id="@+id/dryBtn"
+                android:layout_width="150px"
+                android:layout_height="150px"
+                android:layout_margin="20px"
+                android:background="@drawable/dry"
+                android:text="@string/dry"
+                android:tooltipText="dry"/>
 
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-                <TextView
-                    android:id="@+id/canned"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/canned" />
-
-                <ImageButton
-                    android:id="@+id/cannedBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="@string/canned" />
-
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-                <TextView
-                    android:id="@+id/fresh"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/fresh" />
-
-                <ImageButton
-                    android:id="@+id/freshBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="@string/fresh" />
-
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-                <TextView
-                    android:id="@+id/dry"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/dry" />
-
-                <ImageButton
-                    android:id="@+id/dryBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="@string/dry" />
-
-            </LinearLayout>
         </LinearLayout>
     </HorizontalScrollView>
 
