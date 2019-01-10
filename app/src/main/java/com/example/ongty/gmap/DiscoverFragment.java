@@ -13,10 +13,12 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.example.ongty.gmap.models.item;
 import com.example.ongty.gmap.models.place;
@@ -104,7 +106,7 @@ public class DiscoverFragment extends Fragment {
          improve performance if you know that changes
          in content do not change the layout size
          of the RecyclerView */
-        recyclerView.setHasFixedSize(false);
+        recyclerView.setHasFixedSize(true);
 
         // use a linear layout manager
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -158,7 +160,8 @@ public class DiscoverFragment extends Fragment {
                 @Override
                 public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
                     RecyclerView.Adapter mAdapter = new Adapter(itemList);
-                    if (swipeDir == ItemTouchHelper.RIGHT) {
+                    if (swipeDir == ItemTouchHelper.RIGHT || swipeDir == ItemTouchHelper.LEFT) {
+                        swipeRefreshLayout.setRefreshing(true);
                         //add into shopping list
                         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                         swipeToShoppingList(user.getUid().toString(),itemList.get(viewHolder.getAdapterPosition()).getName(),
@@ -166,47 +169,17 @@ public class DiscoverFragment extends Fragment {
                                 itemList.get(viewHolder.getAdapterPosition()).getItemPlace());
 
                         // Notify the ArrayAdapter about recent changed
-                        mAdapter.notifyDataSetChanged();
-
                         // Stop progress indicator when update finish
-                        swipeRefreshLayout = view.findViewById(R.id.refresh_layout);
-                        swipeRefreshLayout.setOnRefreshListener(
-                                new SwipeRefreshLayout.OnRefreshListener() {
-                                    @Override
-                                    public void onRefresh() {
-                                        // detach and attach fragment
-                                        Fragment fragment = getFragmentManager().findFragmentById(R.id.fragment_container);
-                                        FragmentTransaction ft = getFragmentManager().beginTransaction();
-                                        ft.detach(fragment).attach(fragment).commit();
-
-                                        swipeRefreshLayout.setRefreshing(false);
-                                    }
-                                }
-                        );
-                        // Log.d("Select", "Selected");
-                        //mAdapter.onDetachedFromRecyclerView(recyclerView);
-                    } else if (swipeDir == ItemTouchHelper.LEFT) {
-                        //itemList.remove(viewHolder.getAdapterPosition());
-                        //mAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-                        //swipeBack = true;
-                        // Notify the ArrayAdapter about recent changed
-                        mAdapter.notifyDataSetChanged();
-                        swipeRefreshLayout = view.findViewById(R.id.refresh_layout);
-                        swipeRefreshLayout.setOnRefreshListener(
-                                new SwipeRefreshLayout.OnRefreshListener() {
-                                    @Override
-                                    public void onRefresh() {
-                                        // detach and attach fragment
-                                        Fragment fragment = getFragmentManager().findFragmentById(R.id.fragment_container);
-                                        FragmentTransaction ft = getFragmentManager().beginTransaction();
-                                        ft.detach(fragment).attach(fragment).commit();
-
-                                        swipeRefreshLayout.setRefreshing(false);
-                                    }
-                                }
-                        );
-                        // Stop progress indicator when update finish
-
+                        itemList.add(viewHolder.getAdapterPosition(), itemList.get(viewHolder.getAdapterPosition()));
+                        ((Adapter) mAdapter).add(viewHolder.getAdapterPosition(), itemList.get(viewHolder.getAdapterPosition()));
+                        // notify item added by position
+                        mAdapter.notifyItemInserted(viewHolder.getAdapterPosition());
+                        Fragment fragment = getFragmentManager().findFragmentById(R.id.fragment_container);
+                        FragmentTransaction ft = getFragmentManager().beginTransaction();
+                        ft.detach(fragment).attach(fragment).commit();
+                        Toast toast= Toast.makeText(getContext(),"You have added "+itemList.get(viewHolder.getAdapterPosition()).getName()+"to your shopping list",Toast.LENGTH_LONG);
+                        toast.setGravity(Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL, 0, 150);
+                        toast.show();swipeRefreshLayout.setRefreshing(false);
                     }
 
                 }
@@ -217,6 +190,7 @@ public class DiscoverFragment extends Fragment {
 //                        swipeBack = false;
 //                        return 0;
 //                    }
+//
 //                    return super.convertToAbsoluteDirection(flags, layoutDirection);
 //                }
 
@@ -240,7 +214,20 @@ public class DiscoverFragment extends Fragment {
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
         // if drag to refresh, disable the animation
+        swipeRefreshLayout = view.findViewById(R.id.refresh_layout);
+        swipeRefreshLayout.setOnRefreshListener(
+                new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        // detach and attach fragment
+                        Fragment fragment = getFragmentManager().findFragmentById(R.id.fragment_container);
+                        FragmentTransaction ft = getFragmentManager().beginTransaction();
+                        ft.detach(fragment).attach(fragment).commit();
 
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                }
+        );
     }
 
     private void swipeToShoppingList(String userId, String name, String category, Double price, place itemPlace){
