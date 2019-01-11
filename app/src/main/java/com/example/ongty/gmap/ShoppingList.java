@@ -108,6 +108,7 @@ public class ShoppingList extends Fragment {
         /** Instantialize firebase */
         FirebaseApp.initializeApp(getContext());
         FirebaseDatabase data = FirebaseDatabase.getInstance();
+
         DatabaseReference database = data.getReference();
 
         /**List to extract from firebase*/

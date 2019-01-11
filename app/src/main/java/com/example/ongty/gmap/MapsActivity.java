@@ -2,18 +2,22 @@ package com.example.ongty.gmap;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.Icon;
 import android.location.Address;
 import android.location.Geocoder;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -61,14 +65,17 @@ import com.google.android.gms.location.places.PlaceDetectionClient;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -81,6 +88,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.maps.android.ui.IconGenerator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -95,6 +103,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+
+import static com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker;
+import static com.google.android.gms.maps.model.BitmapDescriptorFactory.fromBitmap;
 
 /**
  * An activity that displays a map showing the place at the device's current location.
@@ -125,6 +136,9 @@ public class MapsActivity extends AppCompatActivity
     // location retrieved by the Fused Location Provider.
     private Location mLastKnownLocation;
 
+    /** RADIUS FOR CIRCLE AND MARKER GENERATION (metres) */
+    private static final int mRadius = 5000;
+
     // Keys for storing activity state.
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
@@ -137,8 +151,9 @@ public class MapsActivity extends AppCompatActivity
     private String[] mLikelyPlaceAttributions;
     private LatLng[] mLikelyPlaceLatLngs;
 
-    //TODO LINK PHP SERVER WITH MARKING LOCATION FOR ADDING NEW LOCATION (TOGETHER WITH PRODUCTS)
+
     private List<place> mDataPlaces;
+    private List<Marker> mDataMarkers;
 
     private Marker addLocation;
     private List<Address> addresses;
@@ -429,9 +444,13 @@ public class MapsActivity extends AppCompatActivity
     public void addMarker(GoogleMap googleMap) throws IOException {
         //TODO add Marker
         LatLng currentLocation = new LatLng(mMap.getCameraPosition().target.latitude, mMap.getCameraPosition().target.longitude);
-        addLocation = googleMap.addMarker(new MarkerOptions().position(currentLocation).draggable(true).title("Hold and drag me around!"));
-        addLocation.showInfoWindow();
 
+        IconGenerator iconFactory = new IconGenerator(this);
+        iconFactory.setStyle(IconGenerator.STYLE_RED);
+        addLocation = googleMap.addMarker(new MarkerOptions().position(currentLocation).draggable(true).icon
+                (BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon("Hold and drag me around!"))));
+        //.title("Hold and drag me around!")
+        //addLocation.showInfoWindow();
         Geocoder geocoder;
         geocoder =  new Geocoder(this, Locale.getDefault());
         //ADDRESS HEREEE
@@ -483,7 +502,25 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
+        mDataMarkers = new ArrayList<>();
         mMap.setOnMarkerClickListener(this);
+        mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+            @Override
+            public void onMarkerDragStart(Marker marker) {
+                IconGenerator iconFactory = new IconGenerator(getApplicationContext());
+                iconFactory.setStyle(IconGenerator.STYLE_RED);
+                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon("New Location")));
+            }
+
+            @Override
+            public void onMarkerDrag(Marker marker) {
+
+            }
+
+            @Override
+            public void onMarkerDragEnd(Marker marker) {
+            }
+        });
 
         // Use a custom info window adapter to handle multiple lines of text in the
         // info window contents.
@@ -547,13 +584,12 @@ public class MapsActivity extends AppCompatActivity
                                             mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
                             //TODO
                             //mMap.setMyLocationEnabled(false);
-                            drawCircle(new LatLng(mLastKnownLocation.getLatitude(),
-                                    mLastKnownLocation.getLongitude()));
+                            Circle circle = drawCircle(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()));
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(circle.getCenter(), getZoomLevel(circle)));
                         } else {
                             Log.d(TAG, "Current location is null. Using defaults.");
                             Log.e(TAG, "Exception: %s", task.getException());
-                            mMap.moveCamera(CameraUpdateFactory
-                                    .newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
                             mMap.getUiSettings().setMyLocationButtonEnabled(false);
                         }
                     }
@@ -564,18 +600,30 @@ public class MapsActivity extends AppCompatActivity
         }
     }
     /**
-     * DRAW BIG ASS CIRCLE
+     * DRAW BIG CIRCLE
      */
-    private void drawCircle(LatLng latLng) {
+    private Circle drawCircle(LatLng latLng) {
         CircleOptions circleOptions = new CircleOptions();
         circleOptions.center(latLng);
-        circleOptions.fillColor(0x4Ccdffb5);
+        circleOptions.fillColor(0x20FF0000); //4Ccdffb5
         circleOptions.strokeColor(0xE3FFB5);
         circleOptions.strokeWidth(4);
-        circleOptions.radius(5000);
-        mMap.addCircle(circleOptions);
+        circleOptions.radius(mRadius);
+        return mMap.addCircle(circleOptions);
     }
-
+    /**
+     * GET CIRCLE ZOOM LEVEL
+     */
+    public float getZoomLevel(Circle circle) {
+        float zoomLevel = 2;
+        float zoomConstant = 720; // this is where we set relative zoom level
+        if (circle != null) {
+            double radius = circle.getRadius() + circle.getRadius() / 2;
+            double scale = radius / zoomConstant;
+            zoomLevel = (float) (16 - Math.log(scale) / Math.log(2));
+        }
+        return zoomLevel;
+    }
 
     /**
      * Prompts the user for permission to use the device location.
@@ -612,6 +660,15 @@ public class MapsActivity extends AppCompatActivity
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted = true;
+                    // Turn on the My Location layer and the related control on the map.
+                    updateLocationUI();
+
+                    // Get the current location of the device and set the position of the map.
+                    getDeviceLocation();
+
+                    //fetch existing location
+                    fetchExistingLocation(mMap);
+
                 }else {
                     mLocationPermissionGranted = true;
                     mMap.setMyLocationEnabled(false);
@@ -921,6 +978,7 @@ public class MapsActivity extends AppCompatActivity
         /** Instantialize firebase */
         FirebaseApp.initializeApp(this);
         FirebaseDatabase data = FirebaseDatabase.getInstance();
+
         DatabaseReference database = data.getReference();
 
         //Child the root before all the push() keys are found and add a ValueEventListener()
@@ -930,12 +988,29 @@ public class MapsActivity extends AppCompatActivity
                 //Basically, this says "For each DataSnapshot *Data* in dataSnapshot, do what's inside the method.
                 for (DataSnapshot suggestionSnapshot : dataSnapshot.getChildren()) {
                     place onePlace = suggestionSnapshot.getValue(place.class);
-                    MarkerOptions markerOptions = new MarkerOptions();
-                    markerOptions.position(new LatLng(onePlace.getLatitude(), onePlace.getLongitude()));
-                    markerOptions.title(onePlace.getName());
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                    mMap.addMarker(markerOptions);
+                    if(mLastKnownLocation!=null) {
+                        if (distance(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(), onePlace.getLatitude(), onePlace.getLongitude()) <= mRadius) {
+                            MarkerOptions markerOptions = new MarkerOptions();
+                            markerOptions.position(new LatLng(onePlace.getLatitude(), onePlace.getLongitude()));
+                            //markerOptions.title(onePlace.getName());
+                            IconGenerator iconFactory = new IconGenerator(getApplicationContext());
+                            iconFactory.setStyle(IconGenerator.STYLE_GREEN);
+                            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(onePlace.getName())));
+                            mDataMarkers.add(mMap.addMarker(markerOptions));
+                        }
+                    }
                 }
+
+                /** DEFAULT ZOOM LEVEL IS ALL MARKER WITHIN RADIUS */
+//                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+//                for (Marker marker : mDataMarkers) {
+//                    builder.include(marker.getPosition());
+//                }
+//                LatLngBounds bounds = builder.build();
+//
+//                int padding = 0; // offset from edges of the map in pixels
+//                CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+//                mMap.moveCamera(cu);
             }
 
             @Override
@@ -950,6 +1025,7 @@ public class MapsActivity extends AppCompatActivity
         /** Instantialize firebase */
         FirebaseApp.initializeApp(this);
         FirebaseDatabase data = FirebaseDatabase.getInstance();
+
         final DatabaseReference database = data.getReference();
         mDataPlaces = new ArrayList<>();
         //Create a new ArrayAdapter with your context and the simple layout for the dropdown menu provided by Android
@@ -1009,6 +1085,7 @@ public class MapsActivity extends AppCompatActivity
             /** Instantialize firebase */
             FirebaseApp.initializeApp(this);
             FirebaseDatabase data = FirebaseDatabase.getInstance();
+
             final DatabaseReference database = data.getReference();
             database.child("places").addValueEventListener(new ValueEventListener() {
                 @Override
@@ -1031,7 +1108,28 @@ public class MapsActivity extends AppCompatActivity
                 }
             });
 
+        } else {
+            marker.showInfoWindow();
         }
         return true;
     }
+
+    private double distance(double lat1, double lon1, double lat2, double lon2) {
+        double theta = lon1 - lon2;
+        double dist = Math.sin(deg2rad(lat1))
+                * Math.sin(deg2rad(lat2))
+                + Math.cos(deg2rad(lat1))
+                * Math.cos(deg2rad(lat2))
+                * Math.cos(deg2rad(theta));
+        dist = Math.acos(dist);
+        dist = rad2deg(dist);
+        dist = dist * 60 * 1.1515 * 1000;
+        return (dist);}
+
+    private double deg2rad(double deg) {
+        return (deg * Math.PI / 180.0);}
+
+    private double rad2deg(double rad) {
+        return (rad * 180.0 / Math.PI);}
 }
+
