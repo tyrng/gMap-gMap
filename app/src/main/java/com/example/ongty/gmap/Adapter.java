@@ -3,16 +3,27 @@ package com.example.ongty.gmap;
 import java.util.List;
 
 import android.annotation.SuppressLint;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.AutoCompleteTextView;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.ongty.gmap.models.item;
+
+import static java.security.AccessController.getContext;
 
 public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     private List<item> values;
@@ -83,10 +94,10 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
         // - replace the contents of the view with that element
         final item items = values.get(position);
         holder.txtTitle.setText(items.getName());
-        holder.txtTitle.setOnClickListener(new OnClickListener() {
+        holder.root.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                remove(position);
+//                remove(position);
             }
         });
 
@@ -102,5 +113,6 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     public int getItemCount() {
         return values.size();
     }
+
 
 }

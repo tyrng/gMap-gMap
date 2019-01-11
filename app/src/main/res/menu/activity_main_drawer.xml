@@ -13,7 +13,7 @@
             android:title="@string/nav_history" />
     </group>
 
-    <item android:title="Custom">
+    <item android:title="General">
         <menu>
             <item
                 android:id="@+id/action_log"

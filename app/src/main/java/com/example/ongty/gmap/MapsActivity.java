@@ -20,6 +20,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -180,7 +181,6 @@ public class MapsActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        discoverFragment = new DiscoverFragment();
 
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -307,7 +307,7 @@ public class MapsActivity extends AppCompatActivity
 
             switch (item.getItemId()) {
                 case R.id.nav_bar_discover:
-
+                    discoverFragment = new DiscoverFragment();
                     fragmentTransaction.replace(R.id.fragment_container, discoverFragment).addToBackStack(null).commit();
                     fab.hide();
                     ACTV.setVisibility(View.INVISIBLE);
@@ -361,6 +361,9 @@ public class MapsActivity extends AppCompatActivity
         /** Handle Add Item action */
         itemFragment = new ItemFragment();
 
+        /** get toolbar name*/
+        android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle(R.string.nav_bar_addItem);
         /** Bundle to pass argument from activity to fragment */
         if (addLocation != null){
             Bundle  bundleItemFragment = new Bundle();
@@ -368,9 +371,8 @@ public class MapsActivity extends AppCompatActivity
             bundleItemFragment.putDouble("longitude", addLocation.getPosition().longitude);
             bundleItemFragment.putString("address", addresses.get(0).getAddressLine(0));
             itemFragment.setArguments(bundleItemFragment);
+            toolbar.setTitle("Add Place with Item");
         }
-        /** get toolbar name*/
-        android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
         FloatingActionButton fab = findViewById(R.id.fab);
 
         fragmentTransaction.replace(R.id.fragment_container, itemFragment).addToBackStack(null).commit();
@@ -378,7 +380,6 @@ public class MapsActivity extends AppCompatActivity
 //        frame.setClickable(true);
 //        frame.setFocusable(true);
         frame.bringChildToFront(findViewById(R.id.fragment_container));
-        toolbar.setTitle(R.string.nav_bar_addItem);
         }
 
 
@@ -440,7 +441,6 @@ public class MapsActivity extends AppCompatActivity
 
 
     // TODO make activity and fragments for navigation
-    /** Select 'Get Location' Button in Toolbar */
     public void addMarker(GoogleMap googleMap) throws IOException {
         //TODO add Marker
         LatLng currentLocation = new LatLng(mMap.getCameraPosition().target.latitude, mMap.getCameraPosition().target.longitude);
@@ -489,9 +489,9 @@ public class MapsActivity extends AppCompatActivity
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.option_get_place) {
-            showCurrentPlace();
-        }
+//        if (item.getItemId() == R.id.option_get_place) {
+//            showCurrentPlace();
+//        }
         return true;
     }
 
@@ -660,14 +660,6 @@ public class MapsActivity extends AppCompatActivity
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted = true;
-                    // Turn on the My Location layer and the related control on the map.
-                    updateLocationUI();
-
-                    // Get the current location of the device and set the position of the map.
-                    getDeviceLocation();
-
-                    //fetch existing location
-                    fetchExistingLocation(mMap);
 
                 }else {
                     mLocationPermissionGranted = true;
@@ -942,6 +934,10 @@ public class MapsActivity extends AppCompatActivity
         this.addLocation = addLocation;
     }
 
+    public void nullAddLocation() {
+        this.addLocation = null;
+    }
+
     @SuppressWarnings("deprecation")
     private void onSelectFromImageResult(Intent data) {
         ImageView ivImage = findViewById(R.id.ivPreview);
@@ -975,33 +971,38 @@ public class MapsActivity extends AppCompatActivity
     }
 
     private void fetchExistingLocation(final GoogleMap mMap){
-        /** Instantialize firebase */
-        FirebaseApp.initializeApp(this);
-        FirebaseDatabase data = FirebaseDatabase.getInstance();
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                if(mLocationPermissionGranted) {
+                    /** Instantialize firebase */
+                    FirebaseApp.initializeApp(getApplicationContext());
+                    FirebaseDatabase data = FirebaseDatabase.getInstance();
 
-        DatabaseReference database = data.getReference();
+                    DatabaseReference database = data.getReference();
 
-        //Child the root before all the push() keys are found and add a ValueEventListener()
-        database.child("places").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                //Basically, this says "For each DataSnapshot *Data* in dataSnapshot, do what's inside the method.
-                for (DataSnapshot suggestionSnapshot : dataSnapshot.getChildren()) {
-                    place onePlace = suggestionSnapshot.getValue(place.class);
-                    if(mLastKnownLocation!=null) {
-                        if (distance(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(), onePlace.getLatitude(), onePlace.getLongitude()) <= mRadius) {
-                            MarkerOptions markerOptions = new MarkerOptions();
-                            markerOptions.position(new LatLng(onePlace.getLatitude(), onePlace.getLongitude()));
-                            //markerOptions.title(onePlace.getName());
-                            IconGenerator iconFactory = new IconGenerator(getApplicationContext());
-                            iconFactory.setStyle(IconGenerator.STYLE_GREEN);
-                            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(onePlace.getName())));
-                            mDataMarkers.add(mMap.addMarker(markerOptions));
-                        }
-                    }
-                }
+                    //Child the root before all the push() keys are found and add a ValueEventListener()
+                    database.child("places").addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            //Basically, this says "For each DataSnapshot *Data* in dataSnapshot, do what's inside the method.
+                            for (DataSnapshot suggestionSnapshot : dataSnapshot.getChildren()) {
+                                place onePlace = suggestionSnapshot.getValue(place.class);
+                                if (mMap.getCameraPosition().target != null) {
+                                    if (distance(mMap.getCameraPosition().target.latitude, mMap.getCameraPosition().target.longitude,
+                                            onePlace.getLatitude(), onePlace.getLongitude()) <= mRadius) {
+                                        MarkerOptions markerOptions = new MarkerOptions();
+                                        markerOptions.position(new LatLng(onePlace.getLatitude(), onePlace.getLongitude()));
+                                        //markerOptions.title(onePlace.getName());
+                                        IconGenerator iconFactory = new IconGenerator(getApplicationContext());
+                                        iconFactory.setStyle(IconGenerator.STYLE_GREEN);
+                                        markerOptions.icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(onePlace.getName())));
+                                        mDataMarkers.add(mMap.addMarker(markerOptions));
+                                    }
+                                }
+                            }
 
-                /** DEFAULT ZOOM LEVEL IS ALL MARKER WITHIN RADIUS */
+                            /** DEFAULT ZOOM LEVEL IS ALL MARKER WITHIN RADIUS */
 //                LatLngBounds.Builder builder = new LatLngBounds.Builder();
 //                for (Marker marker : mDataMarkers) {
 //                    builder.include(marker.getPosition());
@@ -1011,13 +1012,16 @@ public class MapsActivity extends AppCompatActivity
 //                int padding = 0; // offset from edges of the map in pixels
 //                CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
 //                mMap.moveCamera(cu);
-            }
+                        }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
 
+                        }
+                    });
+                }
             }
-        });
+        }, 1000);
 
     }
 
@@ -1094,10 +1098,24 @@ public class MapsActivity extends AppCompatActivity
                         //Get the suggestion by childing the key of the string you want to get.
                         place suggestion = suggestionSnapshot.getValue(place.class);
                         if(suggestion.getLatitude() == marker.getPosition().latitude && suggestion.getLongitude() == marker.getPosition().longitude){
+                            discoverFragment = new DiscoverFragment();
                             Bundle  bundleItemFragment = new Bundle();
                             bundleItemFragment.putDouble("mLatitude", marker.getPosition().latitude);
                             bundleItemFragment.putDouble("mLongitude", marker.getPosition().longitude);
                             discoverFragment.setArguments(bundleItemFragment);
+
+                            // GO TO DISCOVER FRAGMENT
+                            FragmentManager fragmentManager = getSupportFragmentManager();
+                            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                            /** get frame to set active */
+                            frame = findViewById(R.id.fragment_container);
+                            /** get toolbar name*/
+                            android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+                            FloatingActionButton fab = findViewById(R.id.fab);
+                            fragmentTransaction.replace(R.id.fragment_container, discoverFragment).addToBackStack(null).commit();
+                            fab.hide();
+                            frame.bringChildToFront(findViewById(R.id.fragment_container));
+                            toolbar.setTitle(suggestion.getName());
                             break;
                         }
                     }
@@ -1112,6 +1130,20 @@ public class MapsActivity extends AppCompatActivity
             marker.showInfoWindow();
         }
         return true;
+    }
+
+    public void discoverArea(String name, double latitude, double longitude){
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude,longitude), DEFAULT_ZOOM));
+        for(place p : mDataPlaces){
+            if(p.getLatitude() != latitude && p.getLongitude() != longitude){
+                MarkerOptions markerOptions = new MarkerOptions();
+                markerOptions.position(new LatLng(latitude, longitude));
+                //markerOptions.title(onePlace.getName());
+                IconGenerator iconFactory = new IconGenerator(getApplicationContext());
+                iconFactory.setStyle(IconGenerator.STYLE_GREEN);
+                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(name)));
+            }
+        }
     }
 
     private double distance(double lat1, double lon1, double lat2, double lon2) {

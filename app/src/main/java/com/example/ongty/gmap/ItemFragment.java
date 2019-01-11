@@ -12,12 +12,17 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -26,9 +31,11 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.example.ongty.gmap.models.item;
 import com.example.ongty.gmap.models.place;
@@ -90,7 +97,7 @@ public class ItemFragment extends Fragment {
                 place placeEntered;
                 item newItem;
 
-                if (selectedLatitude != null && selectedLongitude != null) {
+                if (selectedLatitude != null && selectedLongitude != null && selectedLatitude != 0 && selectedLongitude != 0) {
                     placeEntered = new place(itemLocationNameTxt.getText().toString(), selectedLatitude, selectedLongitude, selectedAddress);
                     database.child("places").push().setValue(placeEntered);
                     if (uploadedImage != null) {
@@ -99,17 +106,57 @@ public class ItemFragment extends Fragment {
                     } else {
                         newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered);
                     }
-
                     database.child("items").push().setValue(newItem);
+                    Toast toast = Toast.makeText(getActivity(), "New Item Added!", Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL, 0, 456);
+                    toast.show();
                 } else {
                     for (place p : placeList) {
                         if (p.getName().equals(itemLocationNameTxt.getText().toString())) {
                             placeEntered = p;
-                            newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered);
+                            if (uploadedImage != null) {
+                                newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered, uploadedImage);
+                                uploadedImage = null;
+                            } else {
+                                newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered);
+                            }
                             database.child("items").push().setValue(newItem);
                             break;
                         }
                     }
+                    Toast toast = Toast.makeText(getActivity(), "New Place with Item Added!", Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL, 0, 456);
+                    toast.show();
+                }
+                if(getActivity() instanceof MapsActivity) {
+                    MapsActivity mapsActivity = (MapsActivity) getActivity();
+                    FloatingActionButton fab = mapsActivity.findViewById(R.id.fab);
+                    AutoCompleteTextView ACTV = mapsActivity.findViewById(R.id.mapSearchBar);
+                    /** RESET FAB BUTTON */
+                    fab.setImageResource(R.drawable.ic_add_white_24dp);
+                    ACTV.setVisibility(View.VISIBLE);
+                    if (mapsActivity.getAddLocation() != null) {
+                        mapsActivity.getAddLocation().remove();
+                        mapsActivity.nullAddLocation();
+                    }
+
+                    FragmentManager fragmentManager = mapsActivity.getSupportFragmentManager();
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    FrameLayout frame = mapsActivity.findViewById(R.id.fragment_container);
+                    android.support.v7.widget.Toolbar toolbar = mapsActivity.findViewById(R.id.toolbar);
+                    NavigationView navigationView = mapsActivity.findViewById(R.id.nav_view);
+                    /** set fragment into map */
+                    Fragment fragment = fragmentManager.findFragmentById(R.id.fragment_container);
+
+                    fragmentTransaction.remove(fragment).addToBackStack(null).commit();
+
+                    NavigationView nav = mapsActivity.findViewById(R.id.nav_view);
+                    nav.bringToFront();
+
+                    fab.show();
+                    frame.bringToFront();
+                    toolbar.setTitle(R.string.app_name);
+                    navigationView.bringToFront();
                 }
             }
         });
