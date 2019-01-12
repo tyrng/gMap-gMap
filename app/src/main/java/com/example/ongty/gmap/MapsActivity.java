@@ -1075,9 +1075,15 @@ public class MapsActivity extends AppCompatActivity
         ACTV.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View arg1, int pos, long id) {
+                String selection = (String) parent.getItemAtPosition(pos);
+                for(place p : mDataPlaces){
+                    if(p.getName().equals(selection)){
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(p.getLatitude(),p.getLongitude()), DEFAULT_ZOOM));
+                        break;
+                    }
+                }
                 InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 in.hideSoftInputFromWindow(arg1.getApplicationWindowToken(), 0);
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mDataPlaces.get(pos).getLatitude(),mDataPlaces.get(pos).getLongitude()), DEFAULT_ZOOM));
             }
         });
     }
