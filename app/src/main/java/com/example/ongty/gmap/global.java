@@ -19,7 +19,7 @@ public class global extends Application {
             public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
                 // new activity created; force its orientation to portrait
                 activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+//                FirebaseDatabase.getInstance().setPersistenceEnabled(true);
             }
 
             @Override

@@ -55,6 +55,7 @@ import android.widget.ListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.androidmapsextensions.utils.LatLngUtils;
 import com.example.ongty.gmap.models.item;
 import com.example.ongty.gmap.models.place;
 import com.firebase.ui.auth.AuthUI;
@@ -177,6 +178,8 @@ public class MapsActivity extends AppCompatActivity
     private String uploadedItemImage;
 
     private AutoCompleteTextView ACTV;
+
+    private Circle circle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -584,7 +587,7 @@ public class MapsActivity extends AppCompatActivity
                                             mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
                             //TODO
                             //mMap.setMyLocationEnabled(false);
-                            Circle circle = drawCircle(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()));
+                            circle = drawCircle(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()));
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(circle.getCenter(), getZoomLevel(circle)));
                         } else {
                             Log.d(TAG, "Current location is null. Using defaults.");
@@ -949,6 +952,11 @@ public class MapsActivity extends AppCompatActivity
                 bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
                 uploadedItemImage = Base64.encodeToString(stream.toByteArray(), Base64.DEFAULT);
                 Bundle  bundleItemFragment = new Bundle();
+                if (addLocation != null){
+                    bundleItemFragment.putDouble("latitude", addLocation.getPosition().latitude);
+                    bundleItemFragment.putDouble("longitude", addLocation.getPosition().longitude);
+                    bundleItemFragment.putString("address", addresses.get(0).getAddressLine(0));
+                }
                 bundleItemFragment.putString("image", uploadedItemImage);
                 itemFragment.setArguments(bundleItemFragment);
             } catch (IOException e) {
@@ -965,6 +973,11 @@ public class MapsActivity extends AppCompatActivity
         bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
         uploadedItemImage = Base64.encodeToString(stream.toByteArray(), Base64.DEFAULT);
         Bundle  bundleItemFragment = new Bundle();
+        if (addLocation != null){
+            bundleItemFragment.putDouble("latitude", addLocation.getPosition().latitude);
+            bundleItemFragment.putDouble("longitude", addLocation.getPosition().longitude);
+            bundleItemFragment.putString("address", addresses.get(0).getAddressLine(0));
+        }
         bundleItemFragment.putString("image", uploadedItemImage);
         itemFragment.setArguments(bundleItemFragment);
         ivImage.setImageBitmap(bm);
@@ -989,8 +1002,7 @@ public class MapsActivity extends AppCompatActivity
                             for (DataSnapshot suggestionSnapshot : dataSnapshot.getChildren()) {
                                 place onePlace = suggestionSnapshot.getValue(place.class);
                                 if (mMap.getCameraPosition().target != null) {
-                                    if (distance(mMap.getCameraPosition().target.latitude, mMap.getCameraPosition().target.longitude,
-                                            onePlace.getLatitude(), onePlace.getLongitude()) <= mRadius) {
+                                    if (circleContains(circle, new LatLng(onePlace.getLatitude(), onePlace.getLongitude()))) {
                                         MarkerOptions markerOptions = new MarkerOptions();
                                         markerOptions.position(new LatLng(onePlace.getLatitude(), onePlace.getLongitude()));
                                         //markerOptions.title(onePlace.getName());
@@ -1141,33 +1153,24 @@ public class MapsActivity extends AppCompatActivity
     public void discoverArea(String name, double latitude, double longitude){
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude,longitude), DEFAULT_ZOOM));
         for(place p : mDataPlaces){
-            if(p.getLatitude() != latitude && p.getLongitude() != longitude){
+            if(p.getLatitude() == latitude && p.getLongitude() == longitude && !circleContains(circle, new LatLng(latitude,longitude))){
                 MarkerOptions markerOptions = new MarkerOptions();
                 markerOptions.position(new LatLng(latitude, longitude));
                 //markerOptions.title(onePlace.getName());
                 IconGenerator iconFactory = new IconGenerator(getApplicationContext());
                 iconFactory.setStyle(IconGenerator.STYLE_GREEN);
                 markerOptions.icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(name)));
+                mMap.addMarker(markerOptions);
+                break;
             }
         }
     }
 
-    private double distance(double lat1, double lon1, double lat2, double lon2) {
-        double theta = lon1 - lon2;
-        double dist = Math.sin(deg2rad(lat1))
-                * Math.sin(deg2rad(lat2))
-                + Math.cos(deg2rad(lat1))
-                * Math.cos(deg2rad(lat2))
-                * Math.cos(deg2rad(theta));
-        dist = Math.acos(dist);
-        dist = rad2deg(dist);
-        dist = dist * 60 * 1.1515 * 1000;
-        return (dist);}
-
-    private double deg2rad(double deg) {
-        return (deg * Math.PI / 180.0);}
-
-    private double rad2deg(double rad) {
-        return (rad * 180.0 / Math.PI);}
+    public boolean circleContains(Circle circle, LatLng position) {
+        LatLng center = circle.getCenter();
+        double radius = circle.getRadius();
+        float distance = LatLngUtils.distanceBetween(position, center);
+        return distance < radius;
+    }
 }
 

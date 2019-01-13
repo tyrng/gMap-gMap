@@ -343,7 +343,7 @@ public class DiscoverFragment extends Fragment {
                             navigationView.bringToFront();
 
                             /** PASS VALUES TO MAP ACTIVITY */
-                            mapsActivity.discoverArea(itemList.get(viewHolder.getAdapterPosition()).getName(),
+                            mapsActivity.discoverArea(itemList.get(viewHolder.getAdapterPosition()).getItemPlace().getName(),
                                     itemList.get(viewHolder.getAdapterPosition()).getItemPlace().getLatitude(),
                                     itemList.get(viewHolder.getAdapterPosition()).getItemPlace().getLongitude());
                         }
