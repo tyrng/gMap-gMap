@@ -114,7 +114,7 @@ import static com.google.android.gms.maps.model.BitmapDescriptorFactory.fromBitm
  */
 public class MapsActivity extends AppCompatActivity
         implements OnMapReadyCallback, DiscoverFragment.OnFragmentInteractionListener, ItemFragment.OnFragmentInteractionListener
-, NavigationView.OnNavigationItemSelectedListener, GoogleMap.OnMarkerClickListener, ShoppingList.OnFragmentInteractionListener {
+        , NavigationView.OnNavigationItemSelectedListener, GoogleMap.OnMarkerClickListener, ShoppingList.OnFragmentInteractionListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
     private GoogleMap mMap;
@@ -383,7 +383,7 @@ public class MapsActivity extends AppCompatActivity
 //        frame.setClickable(true);
 //        frame.setFocusable(true);
         frame.bringChildToFront(findViewById(R.id.fragment_container));
-        }
+    }
 
 
     /** Listener to link DiscoverFragment and ItemFragment interface */
@@ -550,19 +550,19 @@ public class MapsActivity extends AppCompatActivity
                 return infoWindow;
             }
         });
+        if (FirebaseAuth.getInstance().getCurrentUser() != null){
+            // Prompt the user for permission.
+            getLocationPermission();
 
-        // Prompt the user for permission.
-        getLocationPermission();
+            // Turn on the My Location layer and the related control on the map.
+            updateLocationUI();
 
-        // Turn on the My Location layer and the related control on the map.
-        updateLocationUI();
+            // Get the current location of the device and set the position of the map.
+            getDeviceLocation();
 
-        // Get the current location of the device and set the position of the map.
-        getDeviceLocation();
-
-        //fetch existing location
-        fetchExistingLocation(mMap);
-
+            //fetch existing location
+            fetchExistingLocation(mMap);
+        }
     }
 
     /**
@@ -587,8 +587,13 @@ public class MapsActivity extends AppCompatActivity
                                             mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
                             //TODO
                             //mMap.setMyLocationEnabled(false);
-                            circle = drawCircle(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()));
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(circle.getCenter(), getZoomLevel(circle)));
+                            Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                public void run() {
+                                    circle = drawCircle(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()));
+                                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(circle.getCenter(), getZoomLevel(circle)));
+                                }
+                            }, 3000);
                         } else {
                             Log.d(TAG, "Current location is null. Using defaults.");
                             Log.e(TAG, "Exception: %s", task.getException());
@@ -701,7 +706,7 @@ public class MapsActivity extends AppCompatActivity
                                 // Set the count, handling cases where less than 5 entries are returned.
                                 int count;
                                 if (likelyPlaces.getCount() < M_MAX_ENTRIES) {
-                                     count = likelyPlaces.getCount();
+                                    count = likelyPlaces.getCount();
                                 } else {
                                     count = M_MAX_ENTRIES;
                                 }
@@ -723,7 +728,7 @@ public class MapsActivity extends AppCompatActivity
                                     mLikelyPlaceLatLngs[i] = placeLikelihood.getPlace().getLatLng();
 
                                     i++;
-                                        if (i > (count - 1)) {
+                                    if (i > (count - 1)) {
                                         break;
                                     }
                                 }
@@ -763,7 +768,7 @@ public class MapsActivity extends AppCompatActivity
         DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                 LatLng markerLatLng = mLikelyPlaceLatLngs[which];
+                LatLng markerLatLng = mLikelyPlaceLatLngs[which];
                 String markerSnippet = mLikelyPlaceAddresses[which];
                 if (mLikelyPlaceAttributions[which] != null) {
                     markerSnippet = markerSnippet + "\n" + mLikelyPlaceAttributions[which];
@@ -862,8 +867,14 @@ public class MapsActivity extends AppCompatActivity
             if (resultCode == RESULT_OK) {
                 // Successfully signed in
                 updateUIAfterLogin();
+                // Prompt the user for permission.
+                getLocationPermission();
 
-                // ...
+                // Turn on the My Location layer and the related control on the map.
+                updateLocationUI();
+
+                // Get the current location of the device and set the position of the map.
+                getDeviceLocation();
             } else {
                 // Sign in failed. If response is null the user canceled the
                 // sign-in flow using the back button. Otherwise check
@@ -1002,7 +1013,7 @@ public class MapsActivity extends AppCompatActivity
                             for (DataSnapshot suggestionSnapshot : dataSnapshot.getChildren()) {
                                 place onePlace = suggestionSnapshot.getValue(place.class);
                                 if (mMap.getCameraPosition().target != null) {
-                                    if (circleContains(circle, new LatLng(onePlace.getLatitude(), onePlace.getLongitude()))) {
+//                                    if (circleContains(circle, new LatLng(onePlace.getLatitude(), onePlace.getLongitude()))) {
                                         MarkerOptions markerOptions = new MarkerOptions();
                                         markerOptions.position(new LatLng(onePlace.getLatitude(), onePlace.getLongitude()));
                                         //markerOptions.title(onePlace.getName());
@@ -1010,7 +1021,7 @@ public class MapsActivity extends AppCompatActivity
                                         iconFactory.setStyle(IconGenerator.STYLE_GREEN);
                                         markerOptions.icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(onePlace.getName())));
                                         mDataMarkers.add(mMap.addMarker(markerOptions));
-                                    }
+//                                    }
                                 }
                             }
 
@@ -1050,13 +1061,13 @@ public class MapsActivity extends AppCompatActivity
         database.child("places").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                        for (DataSnapshot suggestionSnapshot : dataSnapshot.getChildren()) {
-                            //Get the suggestion by childing the key of the string you want to get.
-                            place suggestion = suggestionSnapshot.getValue(place.class);
-                            mDataPlaces.add(suggestion);
-                            //Add the retrieved string to the list
-                            autoComplete.add(suggestion.getName());
-                        }
+                for (DataSnapshot suggestionSnapshot : dataSnapshot.getChildren()) {
+                    //Get the suggestion by childing the key of the string you want to get.
+                    place suggestion = suggestionSnapshot.getValue(place.class);
+                    mDataPlaces.add(suggestion);
+                    //Add the retrieved string to the list
+                    autoComplete.add(suggestion.getName());
+                }
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {

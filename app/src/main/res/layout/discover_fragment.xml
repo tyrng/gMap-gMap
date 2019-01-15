@@ -80,6 +80,12 @@
     </HorizontalScrollView>
 
         <!-- dynamically add image button and text -->
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Swipe left to add into shopping list, right to show on Map." />
+
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/refresh_layout"
         android:layout_width="match_parent"

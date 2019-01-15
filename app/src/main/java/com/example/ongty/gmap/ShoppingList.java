@@ -160,8 +160,8 @@ public class ShoppingList extends Fragment {
                                     Log.d("Select", "Selected");
                                     mAdapter.onDetachedFromRecyclerView(recyclerView);
                                 } else if (swipeDir == ItemTouchHelper.LEFT) {
-                                    itemList.remove(viewHolder.getAdapterPosition());
-                                    mAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+                                    //itemList.remove(viewHolder.getAdapterPosition());
+                                    //mAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
                                 }
                             }
 

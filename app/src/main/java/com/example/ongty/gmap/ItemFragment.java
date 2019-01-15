@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -86,97 +85,49 @@ public class ItemFragment extends Fragment {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    public void run() {
-                        itemLocationNameTxt = view.findViewById(R.id.locationName);
-                        itemNameTxt = view.findViewById(R.id.itemName);
-                        itemCategorySpin = view.findViewById(R.id.itemCategory);
-                        itemPriceTxt = view.findViewById(R.id.itemPrice);
+                itemLocationNameTxt = view.findViewById(R.id.locationName);
+                itemNameTxt = view.findViewById(R.id.itemName);
+                itemCategorySpin = view.findViewById(R.id.itemCategory);
+                itemPriceTxt = view.findViewById(R.id.itemPrice);
 
-                        // TODO: GET PICTURE FROM INPUT
+                // TODO: GET PICTURE FROM INPUT
 
-                        // TODO: VALIDATION
+                // TODO: VALIDATION
 
+                place placeEntered;
+                item newItem;
+
+                if (selectedLatitude != null && selectedLongitude != null && selectedLatitude != 0 && selectedLongitude != 0) {
+                    placeEntered = new place(itemLocationNameTxt.getText().toString(), selectedLatitude, selectedLongitude, selectedAddress);
+                    database.child("places").push().setValue(placeEntered);
+                    if (uploadedImage != null) {
+                        newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered, uploadedImage);
                         uploadedImage = null;
-                        try {
-                            selectedLatitude = getArguments().getDouble("latitude");
-                            selectedLongitude = getArguments().getDouble("longitude");
-                            selectedAddress = getArguments().getString("address");
-                            uploadedImage = getArguments().getString("image");
-                        } catch (NullPointerException e) {
-
-                        }
-
-                        if (selectedLatitude != null && selectedLongitude != null && selectedLatitude != 0 && selectedLongitude != 0) {
-                            database.child("places").addValueEventListener(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    //Basically, this says "For each DataSnapshot *Data* in dataSnapshot, do what's inside the method.
-                                    for (DataSnapshot suggestionSnapshot : dataSnapshot.getChildren()) {
-                                        //Get the suggestion by childing the key of the string you want to get.
-                                        place ignore = suggestionSnapshot.getValue(place.class);
-                                        place p = new place(itemLocationNameTxt.getText().toString(), selectedLatitude, selectedLongitude, selectedAddress);
-                                        if (!ignore.getName().equals(itemLocationNameTxt.getText().toString())) {
-                                            place newPlace = new place(itemLocationNameTxt.getText().toString(), selectedLatitude, selectedLongitude, selectedAddress);
-                                            database.child("places").push().setValue(newPlace);
-                                            place placeEntered = p;
-                                            item newItem;
-                                            if (uploadedImage != null) {
-                                                newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered, uploadedImage);
-
-                                            } else {
-                                                newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered);
-                                            }
-                                            database.child("items").push().setValue(newItem);
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-
-                                }
-                            });
-                            Toast toast = Toast.makeText(getActivity(), "New Place with Item Added!", Toast.LENGTH_SHORT);
-                            toast.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 456);
-                            toast.show();
-                        } else {
-                            database.child("places").addValueEventListener(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    //Basically, this says "For each DataSnapshot *Data* in dataSnapshot, do what's inside the method.
-                                    for (DataSnapshot suggestionSnapshot : dataSnapshot.getChildren()) {
-                                        //Get the suggestion by childing the key of the string you want to get.
-                                        place p = suggestionSnapshot.getValue(place.class);
-                                        if (p.getName().equals(itemLocationNameTxt.getText().toString())) {
-                                            place placeEntered = p;
-                                            item newItem;
-                                            if (uploadedImage != null) {
-                                                newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered, uploadedImage);
-
-                                            } else {
-                                                newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered);
-                                            }
-                                            database.child("items").push().setValue(newItem);
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-
-                                }
-                            });
-                            Toast toast = Toast.makeText(getActivity(), "New Item Added!", Toast.LENGTH_SHORT);
-                            toast.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 456);
-                            toast.show();
-
+                    } else {
+                        newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered);
+                    }
+                    database.child("items").push().setValue(newItem);
+                    Toast toast = Toast.makeText(getActivity(), "New Item Added!", Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL, 0, 456);
+                    toast.show();
+                } else {
+                    for (place p : placeList) {
+                        if (p.getName().equals(itemLocationNameTxt.getText().toString())) {
+                            placeEntered = p;
+                            if (uploadedImage != null) {
+                                newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered, uploadedImage);
+                                uploadedImage = null;
+                            } else {
+                                newItem = new item(itemNameTxt.getText().toString(), itemCategorySpin.getSelectedItem().toString(), Double.valueOf(itemPriceTxt.getText().toString()), placeEntered);
+                            }
+                            database.child("items").push().setValue(newItem);
+                            break;
                         }
                     }
-                }, 1000);
+                    Toast toast = Toast.makeText(getActivity(), "New Place with Item Added!", Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL, 0, 456);
+                    toast.show();
+                }
                 if(getActivity() instanceof MapsActivity) {
                     MapsActivity mapsActivity = (MapsActivity) getActivity();
                     FloatingActionButton fab = mapsActivity.findViewById(R.id.fab);
@@ -184,6 +135,10 @@ public class ItemFragment extends Fragment {
                     /** RESET FAB BUTTON */
                     fab.setImageResource(R.drawable.ic_add_white_24dp);
                     ACTV.setVisibility(View.VISIBLE);
+                    if (mapsActivity.getAddLocation() != null) {
+                        mapsActivity.getAddLocation().remove();
+                        mapsActivity.nullAddLocation();
+                    }
 
                     FragmentManager fragmentManager = mapsActivity.getSupportFragmentManager();
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -251,7 +206,6 @@ public class ItemFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        uploadedImage = null;
         try {
             selectedLatitude = getArguments().getDouble("latitude");
             selectedLongitude = getArguments().getDouble("longitude");
